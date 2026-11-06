@@ -1,0 +1,44 @@
+.snoopy-control-panel{position:fixed;right:22px;bottom:22px;z-index:60;width:338px;max-height:calc(100dvh - 108px);overflow:auto;padding:22px;background:#fff;border:1px solid #e6e2de;border-radius:18px;box-shadow:0 14px 55px #25191316;color:#211d19;overscroll-behavior:contain}
+.snoopy-companion.is-dragging{z-index:61}.snoopy-companion.is-dragging .companion-character{cursor:grabbing;filter:drop-shadow(0 8px 6px #0002)}.companion-character{user-select:none;-webkit-user-select:none}.companion-character canvas{pointer-events:none}
+.snoopy-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.snoopy-panel-eyebrow{font:9px/1.5 'DM Sans',sans-serif;letter-spacing:1.6px;color:var(--accent)}.snoopy-panel-heading h2{font:italic 36px/1.1 Georgia,serif;margin:5px 0 0;letter-spacing:-1px}.snoopy-panel-close{border:0;background:transparent;color:#777;font-size:11px;min-height:44px;padding:8px;text-decoration:underline;text-underline-offset:4px}.snoopy-panel-note{font:12px/1.6 'DM Sans',sans-serif;color:#777;margin:15px 0 18px;max-width:265px}
+.snoopy-main-actions{display:grid;gap:7px}.snoopy-main-actions button{display:block;width:100%;padding:13px 14px;text-align:left;border:1px solid #ece7e2;border-radius:9px;background:#fcfbf9;transition:background .15s,border-color .15s}.snoopy-main-actions button strong{display:block;font:500 13px/1.5 'DM Sans',sans-serif;color:#27221e}.snoopy-main-actions button span{display:block;margin-top:2px;font:11px/1.5 'DM Sans',sans-serif;color:#8b8179}.snoopy-main-actions button:hover:not(:disabled){border-color:#c99186;background:#fff8f5}.snoopy-control-panel button:disabled{opacity:.4;cursor:default}.snoopy-control-panel button:focus-visible,.snoopy-extra-tools summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.snoopy-extra-tools{margin-top:12px;border-bottom:1px solid #eee8e3}.snoopy-extra-tools summary{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;min-height:44px;cursor:pointer;list-style:none;font:11px 'DM Sans',sans-serif;color:#776d66}.snoopy-extra-tools summary::-webkit-details-marker{display:none}.snoopy-extra-tools summary span{font-size:17px;color:var(--accent)}.snoopy-extra-tools[open] summary span{transform:rotate(45deg)}.snoopy-extra-tools>div{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;padding:0 0 12px}.snoopy-extra-tools button{border:0;background:none;min-height:42px;padding:8px 2px;text-align:left;color:var(--accent);font:11px 'DM Sans',sans-serif}
+.snoopy-panel-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:12px}.snoopy-panel-footer button{background:none;border:0;min-height:44px;padding:8px 0;font:11px 'DM Sans',sans-serif;color:var(--accent)}.snoopy-panel-footer span{font:10px/1.5 'DM Sans',sans-serif;color:#999;max-width:130px;text-align:right}.snoopy-resume{width:100%;min-height:42px;border:1px solid #d7aba3;background:#fbefeb;color:var(--accent);font:12px 'DM Sans',sans-serif;border-radius:8px;margin-bottom:12px}.snoopy-toggle span{font-size:9px;opacity:.7}
+@media(max-width:700px){.snoopy-control-panel{right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:calc(100% - 24px);max-height:calc(100dvh - 116px);padding:18px;border-radius:16px}.snoopy-panel-heading h2{font-size:32px}.snoopy-panel-note{margin:12px 0 14px}.snoopy-main-actions button{padding:12px 14px}}
+@media(prefers-reduced-motion:reduce){.snoopy-main-actions button{transition:none}}
+
+/* Character performance stays inside the hit area; page position owns the outer layer. */
+.snoopy-performance{display:block;width:100%;height:100%;transform-origin:50% 90%}
+.snoopy-companion.is-idle .snoopy-performance{animation:snoopy-breathe 4.8s ease-in-out infinite}
+.snoopy-companion.is-dragging .snoopy-performance{transform:translateY(-6px) rotate(var(--pickup-lean,0deg)) scale(.96,1.04);transition:transform 120ms ease-out;transform-origin:50% 25%}
+.snoopy-companion.reaction-land .snoopy-performance{animation:snoopy-soft-landing 650ms both}
+.snoopy-companion.reaction-hello .snoopy-performance{animation:snoopy-hello 1.1s ease-in-out both}
+.snoopy-companion.reaction-dance .snoopy-performance{animation:snoopy-happy-dance 550ms ease-in-out 4}
+.snoopy-affection{position:absolute;inset:0;pointer-events:none;color:var(--accent)}
+.snoopy-affection i{position:absolute;left:30%;top:15%;font:16px Georgia,serif;animation:snoopy-heart 700ms ease-out both}
+.snoopy-affection i:nth-child(2){left:65%;top:5%;animation-delay:70ms;font-size:12px}.snoopy-affection i:nth-child(3){left:48%;top:-5%;animation-delay:130ms;font-size:10px}
+@keyframes snoopy-breathe{0%,100%{transform:scale(1)}50%{transform:translateY(-1px) scale(1.012,1.018)}}
+@keyframes snoopy-soft-landing{0%{transform:scale(.96,1.04)}22%{transform:scale(1.13,.83)}48%{transform:translateY(-7px) scale(.96,1.05)}75%{transform:scale(1.03,.97)}100%{transform:none}}
+@keyframes snoopy-hello{0%,100%{transform:none}25%{transform:rotate(-9deg) translateY(-8px)}50%{transform:rotate(8deg) translateY(-3px)}75%{transform:rotate(-5deg) translateY(-5px)}}
+@keyframes snoopy-happy-dance{0%,100%{transform:rotate(-7deg)}22%{transform:translateY(-18px) rotate(8deg) scale(.97,1.03)}50%{transform:rotate(7deg) scale(1.07,.92)}72%{transform:translateY(-10px) rotate(-8deg)}}
+@keyframes snoopy-heart{0%{opacity:0;transform:translateY(0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translateY(-30px) scale(1.1)}}
+@media(prefers-reduced-motion:reduce){.snoopy-companion .snoopy-performance,.snoopy-affection i{animation:none!important;transition:none!important;transform:none!important}.snoopy-affection{display:none}}
+
+.snoopy-motion-preference{display:block;width:100%;min-height:44px;margin-top:8px;padding:10px 2px;border:0;background:none;text-align:left;color:#776d66;font:11px 'DM Sans',sans-serif;text-decoration:underline;text-underline-offset:4px}
+.snoopy-companion.is-reduced .snoopy-performance,.snoopy-companion.is-reduced .companion-character,.snoopy-companion.is-reduced .companion-sleep-mark{animation:none!important;transition:none!important;transform:none!important}
+.snoopy-companion.is-reduced .snoopy-affection{display:none}
+
+/* A visible rest surface is preferable to silently removing the character. */
+.snoopy-companion[data-docked=true]{border-radius:18px;background:#fffffff5;box-shadow:0 3px 20px #30221a12;isolation:isolate}
+.snoopy-dock-label{display:none;position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;font:9px/1.2 'DM Sans',sans-serif;color:#8a443a;pointer-events:none}
+.snoopy-companion[data-docked=true] .snoopy-dock-label{display:block}
+.snoopy-companion[data-docked=true] .companion-speech{left:auto;right:0;transform:none}
+.snoopy-companion[data-docked=true] .snoopy-performance{animation:none}
+footer{padding-bottom:128px}
+body footer{padding-bottom:128px}
+@media(min-width:700px){body .scroll-portfolio{padding-right:max(6%,124px)}}
+
+.snoopy-quick-tricks{margin-top:15px}.snoopy-quick-tricks>span{display:block;font:9px/1.4 'DM Sans',sans-serif;letter-spacing:1.2px;color:#998a81;margin-bottom:9px}.snoopy-quick-tricks>div{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.snoopy-quick-tricks button{min-height:44px;padding:9px 4px;border:1px solid #ead7d2;border-radius:8px;background:#fff7f4;color:var(--accent);font:11px 'DM Sans',sans-serif}.snoopy-quick-tricks button:hover:not(:disabled){background:#f9e9e3}
+.snoopy-move-effects{position:fixed;z-index:34;pointer-events:none;width:0;height:0}.snoopy-ground-shadow{position:absolute;left:-24px;top:-2px;width:48px;height:5px;border-radius:50%;background:#30201916;filter:blur(1px)}.snoopy-dust{position:absolute;left:-32px;top:-12px}.snoopy-dust i{position:absolute;width:9px;height:9px;border:1px solid #b7422f55;border-radius:50%;animation:snoopy-dust-puff 420ms ease-out infinite}.snoopy-dust i:nth-child(2){left:-10px;top:-3px;animation-delay:140ms}.snoopy-dust i:nth-child(3){left:6px;top:3px;animation-delay:280ms}.snoopy-landing-rings{position:absolute;left:-25px;top:-3px;width:50px;height:7px;border:1px solid #b7422f66;border-radius:50%;animation:snoopy-impact-ring 400ms ease-out both}
+@keyframes snoopy-dust-puff{from{opacity:.65;transform:translate(0,0) scale(.4)}to{opacity:0;transform:translate(-18px,-7px) scale(1.2)}}@keyframes snoopy-impact-ring{from{opacity:.8;transform:scale(.5)}to{opacity:0;transform:scale(1.6)}}
+@media(prefers-reduced-motion:reduce){.snoopy-move-effects{display:none}}

@@ -1,0 +1,16 @@
+.snoopy-photo-moment{position:fixed;z-index:33;pointer-events:none;user-select:none;color:#bc3524;isolation:isolate;contain:layout style}
+.snoopy-viewfinder-corner{position:absolute;width:clamp(12px,12%,26px);height:clamp(12px,12%,26px);border-color:currentColor;border-style:solid;border-width:0;opacity:.8;transition:transform 180ms ease-out}
+.snoopy-viewfinder-corner.top-left{top:0;left:0;border-top-width:2px;border-left-width:2px}
+.snoopy-viewfinder-corner.top-right{top:0;right:0;border-top-width:2px;border-right-width:2px}
+.snoopy-viewfinder-corner.bottom-left{bottom:0;left:0;border-bottom-width:2px;border-left-width:2px}
+.snoopy-viewfinder-corner.bottom-right{bottom:0;right:0;border-bottom-width:2px;border-right-width:2px}
+.snoopy-photo-moment.is-prepare .top-left{transform:translate(-3px,-3px)}
+.snoopy-photo-moment.is-prepare .top-right{transform:translate(3px,-3px)}
+.snoopy-photo-moment.is-prepare .bottom-left{transform:translate(-3px,3px)}
+.snoopy-photo-moment.is-prepare .bottom-right{transform:translate(3px,3px)}
+.snoopy-shutter-pulse{position:absolute;inset:0;border:1px solid currentColor;background:#bc3524;opacity:calc(var(--shutter,0)*.09);transform:scale(calc(1 - var(--shutter,0)*.012));transform-origin:center}
+.snoopy-photo-caption{position:absolute;left:0;bottom:8px;max-width:100%;padding:5px 8px;background:#fffffff2;border-left:2px solid currentColor;color:#9b2d21;font:500 10px/1.4 'DM Sans',sans-serif;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ball.snoopy-playing-ball>img{animation:snoopy-ball-tap 1.6s cubic-bezier(.26,.05,.29,1) both;transform-origin:50% 65%;will-change:transform}
+@keyframes snoopy-ball-tap{0%,12%{transform:translateY(0) rotate(0)}18%{transform:translateY(2px) scale(1.025,.975) rotate(-3deg)}42%{transform:translateY(-44px) scale(.99,1.01) rotate(42deg)}63%{transform:translateY(0) scale(1.045,.955) rotate(72deg)}77%{transform:translateY(-13px) scale(1) rotate(84deg)}88%{transform:translateY(0) rotate(90deg)}100%{transform:translateY(0) rotate(0)}}
+@media(max-width:700px){@keyframes snoopy-ball-tap{0%,12%{transform:translateY(0) rotate(0)}18%{transform:translateY(2px) scale(1.025,.975) rotate(-3deg)}42%{transform:translateY(-26px) rotate(35deg)}63%{transform:translateY(0) scale(1.04,.96) rotate(65deg)}77%{transform:translateY(-8px) rotate(75deg)}88%{transform:translateY(0) rotate(80deg)}100%{transform:translateY(0) rotate(0)}}}
+@media(prefers-reduced-motion:reduce){.ball.snoopy-playing-ball>img{animation:none;transform:none}.snoopy-viewfinder-corner{transition:none;transform:none!important}.snoopy-shutter-pulse{display:none}}

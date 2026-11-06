@@ -1,0 +1,6 @@
+{
+  "swing": {"x":91,"y":80,"w":405,"h":604,"displayHeight":365},
+  "ladder": {"x":589,"y":113,"w":440,"h":573,"displayHeight":350},
+  "camera": {"x":1108,"y":145,"w":451,"h":541,"displayHeight":332},
+  "portal": {"x":1700,"y":210,"w":421,"h":476,"displayHeight":292}
+}

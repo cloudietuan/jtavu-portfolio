@@ -1,0 +1,25 @@
+# Keep the repository focused on runnable source and project guidance.
+/*
+!/.gitignore
+!/.github/
+!/.openai/
+!/AGENTS.md
+!/README.md
+!/design-qa.md
+!/index.html
+!/package.json
+!/package-lock.json
+!/vite.config.mjs
+!/src/
+!/public/
+!/homepage-src/
+!/scripts/
+!/tests/
+!/worker/
+
+# Never commit local credentials or dependency/build directories.
+**/node_modules/
+**/.DS_Store
+**/.env
+**/.env.*
+**/dist/
