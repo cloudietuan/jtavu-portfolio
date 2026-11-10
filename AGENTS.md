@@ -77,3 +77,12 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 ## Articulated cartoon gestures, 27 October
 - User wants actual cartoon body acting, including moving paws and bending into a bow, rather than transforming a single static image.
 - Take a bow now uses a jointed canvas renderer: original face/ear cel, planted original feet, rotating torso/neck, presenting paw and far paw behind the back. snoopyBow.js owns the flourish/dip/hold/return timing. Preserve the character likeness; future gestures should articulate body parts rather than substitute whole-image tilting for acting.
+
+## Resident agent, 9 November: supersedes dock-first scrolling and menu-first behavior
+- User direction: Snoopy should be super interactive, his own agent, treating the website as his playground. Autonomy is now the default, not a menu action.
+- Content is terrain, not an obstacle. snoopyTerrain.js turns real elements (canvas props, section headings, project images and thumbnails, statements, the contact line) into surfaces; he stands on their top edge and rides them as the page scrolls. He may stand in front of large pictures and small text, never over small controls.
+- snoopyAgent.js is his mind: energy and curiosity drives plus a priority list. He strolls, hops, travels to new surfaces, watches and follows a nearby mouse cursor, walks to a project the visitor lingers on, naps after 45 idle seconds and wakes on any input. Authored local behavior, not an LLM.
+- Visibility rule kept from 27 October: he must never go missing. If his surface scrolls away while the page is still moving, or no safe surface exists, he waits in the corner dock and hops back on when the page is quiet.
+- Pause, reduced motion, nap and Keep Snoopy in his corner (session preference) all return the earlier predictable dock behavior. Menu tools still work and take priority; he re-lands afterwards. Arrow keys walk him along a surface or hop to another.
+- Upward-scroll portal return applies only in corner mode. Do not reintroduce obstacle-avoidance relocation for the resident; add surfaces to TERRAIN instead.
+- Still open: one static pose is used in the air and the walk cycle on surfaces. Sit, look, climb and fall artwork does not exist yet.
