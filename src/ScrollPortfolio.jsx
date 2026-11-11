@@ -1,8 +1,18 @@
+import {useEffect} from 'react';
 import {ExperienceArchive} from './ExperienceArchive';
 import {projectList} from './projects';
 export function ScrollPortfolio({filter,setFilter,openProject}){
  const visible=projectList.filter(p=>filter==='All'||p.tags.includes(filter));
  const featured=visible.filter(p=>p.featured),others=visible.filter(p=>!p.featured);
+ // Sections ease in as they arrive. Content stays visible without JavaScript,
+ // and reduced motion turns the movement off in CSS.
+ useEffect(()=>{
+  const items=[...document.querySelectorAll('.scroll-portfolio .work-intro,.scroll-portfolio .project-story,.scroll-portfolio .index-project,.scroll-portfolio .making-section,.scroll-portfolio .beyond-section,.scroll-portfolio .about-section,.scroll-portfolio .contact-section')];
+  if(!('IntersectionObserver' in window))return;
+  const observer=new IntersectionObserver(entries=>{for(const e of entries)if(e.isIntersecting){e.target.classList.add('is-revealed');observer.unobserve(e.target);}},{rootMargin:'0px 0px -8% 0px',threshold:.08});
+  for(const el of items){if(el.classList.contains('is-revealed'))continue;const b=el.getBoundingClientRect();if(b.top<innerHeight&&b.bottom>0){el.classList.add('is-revealed');continue;}el.classList.add('reveal');observer.observe(el);}
+  return()=>observer.disconnect();
+ },[filter]);
  return <div className="scroll-portfolio">
  <section id="work" className="work-intro"><p className="section-kicker">01 / SELECTED WORK</p><div className="work-heading"><h2>A few things<br/><em>I’ve made.</em></h2><p>Websites, design, and ideas<br/>I wanted to see in the world.</p></div><div className="work-filter-row"><div className="work-filters" aria-label="Filter selected work">{['All','Websites','Design','Research'].map(f=><button key={f} aria-pressed={filter===f} onClick={()=>setFilter(f)}>{f}</button>)}</div><p aria-live="polite">{visible.length} projects</p></div></section>
  <div className="featured-stories">{featured.map((p,i)=><section key={p.id} data-project-id={p.id} data-snoopy-actions="inspect climb" id={`project-${p.id}`} className={`project-story ${p.id==='apparel'?'apparel-story':''}`} aria-labelledby={`title-${p.id}`}><div className="story-heading"><p className="section-kicker">{p.tags.join(' / ').toUpperCase()}</p><h2 id={`title-${p.id}`}>{p.title}</h2><p className="story-role">{p.role} <span className="project-status">{p.status}</span></p></div><button className="story-image" onClick={()=>openProject(p.id)} aria-label={`Read the ${p.title} story`}><img src={p.image} alt={`${p.title} website and design preview`} loading="lazy"/></button><div className="story-copy"><p className="story-statement">{p.description}</p><div><p>{p.detail}</p><button className="text-action" onClick={()=>openProject(p.id)}>Project details</button><a className="text-action" href={p.url} target="_blank" rel="noreferrer">Visit the project</a></div></div></section>)}</div>

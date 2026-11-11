@@ -94,3 +94,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Physics: dragging and releasing throws him with the release speed (gravity, wall bounces, header bonk, floor bounce) until a surface catches him; a gentle drop falls straight down. Strolls sometimes head for a ledge with a lower surface beyond it, peek, and step off.
 - Scrolling, at the user's request: he always animates while the page moves. On his surface he crouches with arms out and leans like riding it; when scrolling down lifts his surface to the top he steps off and falls, caught by surfaces rising into him; scrolling up hops him to a higher surface. In the corner during a scroll he trots in place. After a long scroll he looks around with a !.
 - User does not want a white box around him in the corner. The dock has no card or caption, only a soft shadow at his feet.
+
+## Site polish, 10 November
+- User wants the overall site to look better. Done without new content: sections ease in on arrival (reduced motion off), website screenshots sit in a quiet browser frame, project rows tint on hover with a small preview zoom, footer enlarged for legibility, and baked-in browser scrollbars trimmed from the Sunset, Apparel, Maryvale, Science Fair and OncoSync screenshots.
+- Open content questions for the user: "Room for what's next" repeats OncoSync; "Beyond work" promises film, photography and volleyball with no images; Berkeley roles are absent.

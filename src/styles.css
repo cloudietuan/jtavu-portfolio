@@ -130,3 +130,29 @@ section[id],article[id],#contact{scroll-margin-top:90px}.skip-work{position:fixe
 @media(max-width:900px){.index-project{grid-template-columns:1fr 130px}.index-preview{width:130px}.index-project>p{grid-column:1}.index-project>.text-action{grid-column:2;grid-row:2}}
 @media(max-width:700px){.site-header{height:100px;display:grid;grid-template-columns:1fr auto;gap:0;padding:8px 6%}.site-header .brand{font-size:12px}.site-header nav{grid-row:2;grid-column:1/-1;justify-content:space-between;gap:10px;font-size:11px}.site-header .snoopy-toggle{grid-column:2;grid-row:1;min-height:36px;padding:7px 11px;font-size:10px}.site-header nav a{padding:10px 0}.site-header .nav-beyond{display:none}section[id],article[id],#contact{scroll-margin-top:125px}.index-project{grid-template-columns:1fr 100px;gap:12px}.index-preview{width:100px}.index-project h3{font-size:26px}.index-project>p{grid-column:1/-1}.index-project>.text-action{grid-column:1/-1;grid-row:auto;justify-self:start}.archive-heading{display:block}.archive-items{grid-template-columns:1fr;gap:5px}.story-role .project-status{margin:8px 0 0;display:table}.project-detail-story h3{font-size:23px}}
 .contact-section a{overflow-wrap:anywhere}.contact-section>a:first-of-type{display:inline-block;max-width:100%}.index-preview:focus-visible,.project-title-button:focus-visible{outline-offset:4px}
+
+/* Polish pass, 10 November: arrival motion, framed screenshots, readable footer. */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.is-revealed{opacity:1;transform:none}
+.index-project.reveal.is-revealed{transition-delay:.06s}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+/* Website screenshots read as websites: a quiet browser frame. */
+.story-image{position:relative;border-radius:12px;border:1px solid #e9e4df;background:#fff;padding-top:30px;box-shadow:0 1px 2px #1a12080a,0 18px 50px -18px #1a120830;transition:box-shadow .4s,transform .4s}
+.story-image::before{content:"";position:absolute;left:0;right:0;top:0;height:30px;border-bottom:1px solid #eee8e3;background:#faf8f5 radial-gradient(circle at 18px 15px,#e7b4aa 4px,transparent 4.5px) no-repeat,#faf8f5}
+.story-image::after{content:"";position:absolute;top:11px;left:30px;width:8px;height:8px;border-radius:50%;background:#e6dcd2;box-shadow:13px 0 0 #e6dcd2}
+.story-image img{border-radius:0 0 11px 11px}
+.story-image:hover{box-shadow:0 1px 2px #1a12080a,0 26px 60px -18px #1a120840;transform:translateY(-2px)}
+.story-image:hover img{transform:scale(1.015)}
+.index-preview{border-radius:8px;border:1px solid #ebe6e1;background:#faf8f5}
+.index-preview img{transition:transform .5s}
+.index-project{position:relative;transition:background .25s}
+.index-project::before{content:"";position:absolute;inset:0 -18px;border-radius:10px;background:#b1261e06;opacity:0;transition:opacity .25s;pointer-events:none}
+.index-project:hover::before{opacity:1}
+.index-project:hover .index-preview img{transform:scale(1.05)}
+.index-project h3 .project-title-button{transition:color .2s}.index-project:hover h3 .project-title-button{color:var(--accent)}
+
+/* Footer that can actually be read. */
+footer{font-size:11px;letter-spacing:1.5px;padding:28px 4%;color:var(--accent)}footer span{letter-spacing:.3px;color:#6f6660}
+@media(max-width:700px){.story-image{padding-top:24px;border-radius:10px}.story-image::before{height:24px;background-position:14px 12px}.story-image::after{top:8px;left:24px;width:7px;height:7px;box-shadow:11px 0 0 #e6dcd2}.index-project::before{inset:0 -10px}footer{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.story-image,.story-image:hover,.index-preview img{transition:none;transform:none}}
