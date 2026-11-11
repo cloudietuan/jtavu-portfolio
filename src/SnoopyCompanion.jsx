@@ -14,6 +14,7 @@ import {advanceMovement} from './snoopyMovement';
 import {safePoint as findSafePoint,clampPoint,isClear,findClimbCorridor,findReturnStation} from './snoopySafety';
 import {buildPlatforms,choosePlatform,jumpPoint,jumpDuration} from './snoopyTerrain';
 import {createAgent,decide,tickDrives,settle,rememberVisit} from './snoopyAgent';
+import {planRoutine,sampleRoutine,jumpPhase,JUMP_LAND} from './snoopyRoutines';
 // Real page surfaces Snoopy may stand on. His feet rest on their top edge.
 const TERRAIN='.canvas .object,.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.making-section p,.beyond-section>p,.about-section>p,.contact-section>a:first-of-type';
 const DOCK_REST=10000;
@@ -23,7 +24,8 @@ const chapters={work:'A few things John’s been making.', 'project-sunset':'Thi
 export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,onPausedChange}){
  const docked=useRef(false),panel=useRef(null),opener=useRef(null),body=useRef(null),pos=useRef({x:130,y:250}),target=useRef({x:130,y:250}),velocity=useRef({x:0,y:0}),distance=useRef(0),drag=useRef(null),tour=useRef(0),greeted=useRef(false),petTimer=useRef(null),obstacleCache=useRef({at:0,rects:[]}),menuOpen=useRef(false),initialized=useRef(false),toolAction=useRef(null),scrollPosition=useRef(0),lastSkill=useRef(null),scrollReturn=useRef(null),speechCheck=useRef(0),worldIntent=useRef(null),lastScrollAt=useRef(0),reactionTimer=useRef(null);
  // Resident mode: his own mind (agent) and where he is standing (resident).
- const agent=useRef(createAgent()),resident=useRef({perch:null,jump:null,walkTo:null,offSince:0,dockSince:0,platforms:[],covers:[],controls:[],headerBottom:0,scannedAt:0,prefer:null,lastStartle:0,scrollAt:0}),cursor=useRef({x:0,y:0,at:-1e9}),hover=useRef({host:null,at:0}),userAt=useRef(0),autoNap=useRef(false);
+ const agent=useRef(createAgent()),resident=useRef({perch:null,jump:null,walkTo:null,walkSpeed:120,routine:null,offSince:0,dockSince:0,platforms:[],covers:[],controls:[],headerBottom:0,scannedAt:0,prefer:null,lastStartle:0,scrollAt:0}),cursor=useRef({x:0,y:0,at:-1e9}),hover=useRef({host:null,at:0}),userAt=useRef(0),autoNap=useRef(false);
+ const facingRef=useRef(1);
  const [freeRoam,setFreeRoam]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-free-roam')!=='false'}catch{return true}});
  const [reaction,setReaction]=useState(''),[feedback,setFeedback]=useState('');
  const [dragging,setDragging]=useState(false),[pose,setPose]=useState({walking:false,frame:2,facing:1}),[menu,setMenu]=useState(false),[sleep,setSleep]=useState(false),[speech,setSpeech]=useState(''),[petting,setPetting]=useState(false),[systemReduced,setSystemReduced]=useState(false),[quietMotion,setQuietMotion]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-less-motion')==='true'}catch{return false}}),[size,setSize]=useState(96),[placement,setPlacement]=useState({side:'left',below:true}),[toolView,setToolView]=useState({tool:null,anchor:{x:0,y:0},progress:0});
@@ -41,7 +43,27 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  function cancelTool(reason='interrupted'){if(body.current&&toolAction.current)body.current.dataset.lastInterruption=reason;if(body.current)body.current.style.opacity='1';toolAction.current?.subject?.element?.classList.remove('snoopy-playing-ball');toolAction.current=null;body.current?.style.setProperty('--snoopy-swing-angle','0deg');setToolView(old=>old.tool?{tool:null,anchor:old.anchor,progress:0}:old);}
  function react(kind,duration=900){clearTimeout(reactionTimer.current);setReaction(kind);reactionTimer.current=setTimeout(()=>setReaction(''),duration);}
  function stopAction(preservePosition=true){clearTimeout(reactionTimer.current);clearTimeout(petTimer.current);setPetting(false);setReaction('');worldIntent.current=null;scrollReturn.current=null;cancelTool();setPose(old=>old.walking?{...old,walking:false,frame:2}:old);velocity.current={x:0,y:0};if(!preservePosition)pos.current=safePoint(pos.current.x,pos.current.y);target.current={...pos.current};}
- function leavePerch(){const r=resident.current;r.perch=null;r.jump=null;r.walkTo=null;r.offSince=0;}
+ // Pose objects carry which sheet to draw from plus a small procedural transform.
+ const facingNow=()=>facingRef.current||1;
+ const poseKey=o=>`${o.walking}|${o.kind}|${o.frame}|${o.action}|${o.facing}|${o.transform}`;
+ function showPose(next){setPose(old=>poseKey(old)===poseKey(next)?old:next);}
+ function plainPose(){setPose(old=>old.walking||old.kind||old.transform?{walking:false,frame:2,facing:old.facing}:old);}
+ function motionTransform(lean=0,lift=0,squash=[1,1],facing=1){
+  if(!lean&&!lift&&squash[0]===1&&squash[1]===1)return undefined;
+  return `translateY(${-lift.toFixed(1)}px) rotate(${(lean*facing).toFixed(1)}deg) scale(${squash[0].toFixed(3)},${squash[1].toFixed(3)})`;
+ }
+ function startRoutine(name,now,facing){
+  const plan=planRoutine(name);
+  if(!plan)return;
+  resident.current.routine={plan,started:now,facing:facing||facingNow()};
+  resident.current.walkTo=null;
+ }
+ function endRoutine(now){
+  const r=resident.current;if(!r.routine)return;
+  r.routine=null;agent.current=settle(agent.current,now,700+Math.random()*1500);
+  plainPose();
+ }
+ function leavePerch(){const r=resident.current;r.perch=null;r.jump=null;r.walkTo=null;r.routine=null;r.offSince=0;plainPose();}
  function scanTerrain(force=false){
   const r=resident.current,now=performance.now();
   if(!force&&now-r.scannedAt<250)return r.platforms;
@@ -57,8 +79,9 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  function jumpTo(platform,x,now){
   const r=resident.current,startY=Math.max(-size,Math.min(innerHeight+size*2,pos.current.y));
   // The take-off point is stored in page coordinates so a jump survives scrolling.
-  r.jump={element:platform.element,id:platform.id,fx:x-platform.left,from:{x:pos.current.x,y:startY+window.scrollY},started:now,duration:jumpDuration({x:pos.current.x,y:startY},{x,y:platform.y})};
-  r.perch=null;r.walkTo=null;r.offSince=0;docked.current=false;
+  const air=['swing','swing','ladder','walk'][Math.floor(Math.random()*4)];
+  r.jump={element:platform.element,id:platform.id,fx:x-platform.left,from:{x:pos.current.x,y:startY+window.scrollY},started:now,duration:jumpDuration({x:pos.current.x,y:startY},{x,y:platform.y}),air};
+  r.perch=null;r.walkTo=null;r.routine=null;r.offSince=0;docked.current=false;
  }
  // Find the next surface. With nowhere safe to stand he waits in the visible
  // dock and tries again shortly, so he can never go missing.
@@ -81,11 +104,26 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
    const j=r.jump,b=j.element.isConnected?j.element.getBoundingClientRect():null;
    if(!b||!b.width){r.jump=null;return;}
    const end={x:Math.max(edge,Math.min(innerWidth-edge,b.left+j.fx)),y:b.top},start={x:j.from.x,y:j.from.y-window.scrollY};
-   const t=Math.min(1,(now-j.started)/j.duration);
-   pos.current=jumpPoint(start,end,t);target.current={...pos.current};velocity.current={x:0,y:0};
-   const turn=Math.abs(end.x-start.x)>4?Math.sign(end.x-start.x):0,airborne=t<1,frame=airborne?(t<.5?3:5):2;
-   setPose(old=>{const facing=turn||old.facing;return old.walking===airborne&&old.frame===frame&&old.facing===facing?old:{walking:airborne,frame,facing};});
-   if(!airborne){r.perch={element:j.element,id:j.id,fx:j.fx};r.jump=null;react('land',650);}
+   const phase=jumpPhase(now-j.started,j.duration),turn=Math.abs(end.x-start.x)>4?Math.sign(end.x-start.x):0,facing=turn||facingNow();
+   if(phase.phase==='crouch'){
+    // Anticipation: he gathers himself before leaving the ground.
+    pos.current={...start};target.current={...start};velocity.current={x:0,y:0};
+    const k=Math.sin(phase.progress*Math.PI/2);
+    showPose({walking:false,kind:'action',action:'portal',frame:2,facing,transform:motionTransform(0,0,[1+.08*k,1-.12*k],facing)});
+    return;
+   }
+   if(phase.phase==='air'){
+    const t=phase.progress;
+    pos.current=jumpPoint(start,end,t);target.current={...pos.current};velocity.current={x:0,y:0};
+    const stretch=[1-.05*Math.sin(t*Math.PI),1+.07*Math.sin(t*Math.PI)];
+    if(j.air==='walk')showPose({walking:true,kind:'walk',frame:t<.5?3:5,facing,transform:motionTransform(t<.5?-8:6,0,stretch,facing)});
+    else showPose({walking:false,kind:'action',action:j.air,frame:2,facing,transform:motionTransform(t<.5?-6:8,0,stretch,facing)});
+    return;
+   }
+   // Landing: he is on the surface now, absorbing the impact in a crouch.
+   pos.current={...end};target.current={...end};velocity.current={x:0,y:0};
+   r.perch={element:j.element,id:j.id,fx:j.fx};r.jump=null;
+   r.routine={plan:{name:'land',duration:JUMP_LAND,steps:[{start:0,ms:JUMP_LAND,pose:{kind:'action',action:'portal'},squash:[1.12,.85]}]},started:now,facing};
    return;
   }
   if(r.perch){
@@ -110,23 +148,33 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
      return;
     }
     if(r.walkTo!=null){
-     const goal=Math.max(minX,Math.min(maxX,b.left+r.walkTo)),dx=goal-x,step=Math.sign(dx)*Math.min(Math.abs(dx),120*dt),arrived=Math.abs(dx)<=Math.abs(step)+.5;
+     const goal=Math.max(minX,Math.min(maxX,b.left+r.walkTo)),dx=goal-x,step=Math.sign(dx)*Math.min(Math.abs(dx),r.walkSpeed*dt),arrived=Math.abs(dx)<=Math.abs(step)+.5;
      p.fx=x+step-b.left;pos.current.x=x+step;target.current.x=pos.current.x;distance.current+=Math.abs(step);
      const frame=Math.floor(distance.current/14)%8,facing=Math.sign(dx)||1;
-     setPose(old=>arrived?(old.walking?{...old,walking:false,frame:2}:old):old.walking&&old.frame===frame&&old.facing===facing?old:{walking:true,frame,facing});
+     const bob=r.walkSpeed>150?Math.abs(Math.sin(distance.current/14*Math.PI))*4:0,sniffing=r.walkSpeed<70?7:0;
+     if(arrived)showPose({walking:false,frame:2,facing});
+     else showPose({walking:true,kind:'walk',frame,facing,transform:motionTransform(sniffing,bob,[1,1],facing)});
      if(arrived)r.walkTo=null;
      agent.current=tickDrives(agent.current,dt,{moving:true});
      return;
     }
     p.fx=x-b.left;
-    setPose(old=>old.walking?{...old,walking:false,frame:2}:old);
     agent.current=tickDrives(agent.current,dt);
+    if(r.routine){
+     const R=r.routine,sample=sampleRoutine(R.plan,now-R.started);
+     const facing=R.facing*(sample.flips%2?-1:1),pz=sample.pose;
+     showPose({walking:pz.kind==='walk',kind:pz.kind,frame:pz.frame??2,action:pz.action,facing,transform:motionTransform(sample.lean,sample.lift,sample.squash,facing)});
+     if(body.current)body.current.dataset.routine=R.plan.name;
+     if(sample.done){endRoutine(now);if(R.plan.name==='land')react('land',650);}
+    }else plainPose();
     const host=hover.current.host,hovered=host?.isConnected?r.platforms.find(q=>host.contains(q.element)):null,c=cursor.current;
     const result=decide(agent.current,{now,platformId:p.id,otherPlatforms:r.platforms.filter(q=>q.element!==p.element).length,cursor:{x:c.x,y:c.y,ageMs:now-c.at},snoopy:pos.current,span:{minX,maxX},userIdleMs:now-userAt.current,hover:hovered?{id:hovered.id,ms:now-hover.current.at}:null,size});
     agent.current=result.agent;const intent=result.intent;
     if(!intent)return;
+    if(r.routine){if(intent.type!=='travel')return;r.routine=null;}
     if(body.current)body.current.dataset.mind=intent.reason?`${intent.type}:${intent.reason}`:intent.type;
-    if(intent.type==='walk')r.walkTo=intent.x-b.left;
+    if(intent.type==='walk'){r.walkTo=intent.x-b.left;r.walkSpeed=intent.speed||110;}
+    else if(intent.type==='routine')startRoutine(intent.name,now,intent.facing);
     else if(intent.type==='watch')setPose(old=>old.facing===intent.facing?old:{...old,facing:intent.facing});
     else if(intent.type==='hop')jumpTo({element:p.element,id:p.id,left:b.left,y:b.top},x,now);
     else if(intent.type==='travel'){if(relocate(now,{to:intent.to})&&intent.reason==='hover')speak(chapters[host?.id]||'Ooh, this one. Good pick.');}
@@ -141,7 +189,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  function steer([dx,dy]){
   const r=resident.current,now=performance.now();userAt.current=now;
   if(r.jump)return;
-  if(dx&&r.perch){r.walkTo=pos.current.x+dx-r.perch.element.getBoundingClientRect().left;agent.current=settle(agent.current,now,2500);return;}
+  if(dx&&r.perch){r.routine=null;r.walkSpeed=150;r.walkTo=pos.current.x+dx-r.perch.element.getBoundingClientRect().left;agent.current=settle(agent.current,now,2500);return;}
   const options=scanTerrain(true).filter(p=>p.element!==r.perch?.element&&(dy<0?p.y<pos.current.y-8:dy>0?p.y>pos.current.y+8:true));
   const choice=choosePlatform(options,{from:pos.current,size,covers:r.covers,controls:r.controls});
   if(choice&&!choice.blocked){jumpTo(choice.platform,choice.x,now);agent.current=settle(rememberVisit(agent.current,choice.platform.id),now,2500);}
@@ -211,6 +259,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
   window.addEventListener('pointermove',moved,{passive:true});window.addEventListener('pointerdown',touch,{passive:true});window.addEventListener('keydown',touch);window.addEventListener('scroll',touch,{passive:true});document.addEventListener('pointerover',over,{passive:true});
   return()=>{window.removeEventListener('pointermove',moved);window.removeEventListener('pointerdown',touch);window.removeEventListener('keydown',touch);window.removeEventListener('scroll',touch);document.removeEventListener('pointerover',over);};
  },[active]);
+ useEffect(()=>{facingRef.current=pose.facing||1;},[pose.facing]);
  useEffect(()=>{if(!sleep)autoNap.current=false;},[sleep]);
  useEffect(()=>{if(!active)return;let id,last=performance.now();const tick=now=>{
   const dt=Math.min((now-last)/1000,.04);last=now;const action=toolAction.current;if(body.current)body.current.dataset.activity=action?`${action.kind}:${action.stage}`:scrollReturn.current?`portal:${scrollReturn.current.stage}`:'rest';let swinging=false;
@@ -345,12 +394,12 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  function pet(){if(roam&&!sleep&&!reduced&&startMove('bow',true))return;stopAction();setMenu(false);setSleep(false);setPetting(true);speak('That’s the spot.');clearTimeout(petTimer.current);petTimer.current=setTimeout(()=>setPetting(false),700)}
  function showProject(){setMenu(false);setSleep(false);const ids=projectList.map(p=>`project-${p.id}`);const id=ids[tour.current++%ids.length];navigate(id);if(living){resident.current.prefer=document.getElementById(id);agent.current=settle(agent.current,performance.now(),3000);}else move(innerWidth-65,innerHeight-90);speak(chapters[id]||'Let’s take a look at this one.');}
  if(!active)return null;
- return <><SnoopyTools tool={toolView.tool} anchor={toolView.anchor} progress={toolView.progress} tip={toolView.tip} rotation={toolView.rotation} subjectRect={toolView.subjectRect} subjectLabel={toolView.subjectLabel} rise={toolView.rise} actorSize={size} opacity={toolView.opacity} phase={toolView.phase} reduced={reduced}/><div ref={body} className={`snoopy-companion ${placement.side} ${reduced?'is-reduced':''} ${reaction?'reaction-'+reaction:''} ${!paused&&!sleep&&!menu&&!dragging&&!pose.walking&&!reaction&&!toolView.tool?'is-idle':''} ${dragging?'is-dragging':''} ${petting?'getting-pets':''} ${sleep?'is-sleeping':''} ${building?'is-building':''} ${placement.below?'popup-below':''}`} style={{width:size,height:size}}>
+ return <><SnoopyTools tool={toolView.tool} anchor={toolView.anchor} progress={toolView.progress} tip={toolView.tip} rotation={toolView.rotation} subjectRect={toolView.subjectRect} subjectLabel={toolView.subjectLabel} rise={toolView.rise} actorSize={size} opacity={toolView.opacity} phase={toolView.phase} reduced={reduced}/><div ref={body} className={`snoopy-companion ${placement.side} ${reduced?'is-reduced':''} ${reaction?'reaction-'+reaction:''} ${!paused&&!sleep&&!menu&&!dragging&&!pose.walking&&!pose.transform&&!pose.kind&&!reaction&&!toolView.tool?'is-idle':''} ${dragging?'is-dragging':''} ${petting?'getting-pets':''} ${sleep?'is-sleeping':''} ${building?'is-building':''} ${placement.below?'popup-below':''}`} style={{width:size,height:size}}>
  {petting&&<span className="snoopy-affection" aria-hidden="true"><i>♥</i><i>♥</i><i>♥</i></span>}
  <span className="snoopy-dock-label" aria-hidden="true">Snoopy · drag me</span>
  {sleep&&<span className="companion-sleep-mark" aria-hidden="true">Z z</span>}
  {speech&&!menu&&!scrollReturn.current&&toolView.tool!=='swing'&&<p className="companion-speech" aria-live="polite">{speech}</p>}
- <button className="companion-character" aria-label={sleep?'Wake Snoopy companion':'Interact with Snoopy'} aria-expanded={menu} aria-controls="snoopy-menu" title="Drag Snoopy to move him. Click for his controls." onDragStart={e=>e.preventDefault()} onPointerDown={e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();leavePerch();stopAction(true);docked.current=false;target.current={...pos.current};velocity.current={x:0,y:0};e.currentTarget.setPointerCapture(e.pointerId);drag.current={x:e.clientX,y:e.clientY,ox:pos.current.x,oy:pos.current.y,moved:false};}} onPointerMove={e=>{const d=drag.current;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.hypot(dx,dy)>5)d.moved=true;if(d.moved){body.current?.style.setProperty('--pickup-lean',`${Math.max(-14,Math.min(14,dx*.12))}deg`);setDragging(true);setMenu(false);menuOpen.current=false;setSleep(false);setSpeech('');pos.current=clampPoint({x:d.ox+dx,y:d.oy+dy},innerWidth,innerHeight,size);target.current={...pos.current};velocity.current={x:0,y:0};setPose({walking:false,frame:2,facing:dx<0?-1:1});}}} onPointerUp={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);const d=drag.current;drag.current=null;setDragging(false);if(d?.moved){if(!living){react('land',650);pos.current=safePoint(pos.current.x,pos.current.y);}target.current={...pos.current};velocity.current={x:0,y:0};}if(d&&!d.moved){if(sleep){setSleep(false);speak('Okay, I’m up.')}else toggleMenu()}}} onPointerCancel={()=>{drag.current=null;setDragging(false);pos.current=safePoint(pos.current.x,pos.current.y);velocity.current={x:0,y:0};target.current={...pos.current}}} onClick={e=>{if(e.detail===0){if(sleep){setSleep(false);speak('Okay, I’m up.')}else toggleMenu()}}} onKeyDown={e=>{const v={ArrowLeft:[-60,0],ArrowRight:[60,0],ArrowUp:[0,-60],ArrowDown:[0,60]}[e.key];if(v){e.preventDefault();setMenu(false);if(living)steer(v);else move(target.current.x+v[0],target.current.y+v[1]);}if(e.key==='Escape')setMenu(false)}}><span className="snoopy-performance" data-skill={toolView.tool||undefined} data-phase={toolView.phase||undefined} style={{transform:toolView.performance||undefined}}><SnoopySprite action={toolView.tool==='hop'?toolView.spriteAction:toolView.tool==='dash'?undefined:toolView.tool} standingFrame={toolView.spriteFrame??2} actionProgress={toolView.progress} frame={sleep?0:pose.frame} walking={!sleep&&pose.walking} standing={!sleep&&!pose.walking} facing={pose.facing}/></span></button>
+ <button className="companion-character" aria-label={sleep?'Wake Snoopy companion':'Interact with Snoopy'} aria-expanded={menu} aria-controls="snoopy-menu" title="Drag Snoopy to move him. Click for his controls." onDragStart={e=>e.preventDefault()} onPointerDown={e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();leavePerch();stopAction(true);docked.current=false;target.current={...pos.current};velocity.current={x:0,y:0};e.currentTarget.setPointerCapture(e.pointerId);drag.current={x:e.clientX,y:e.clientY,ox:pos.current.x,oy:pos.current.y,moved:false};}} onPointerMove={e=>{const d=drag.current;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.hypot(dx,dy)>5)d.moved=true;if(d.moved){body.current?.style.setProperty('--pickup-lean',`${Math.max(-14,Math.min(14,dx*.12))}deg`);setDragging(true);setMenu(false);menuOpen.current=false;setSleep(false);setSpeech('');pos.current=clampPoint({x:d.ox+dx,y:d.oy+dy},innerWidth,innerHeight,size);target.current={...pos.current};velocity.current={x:0,y:0};setPose({walking:false,frame:2,facing:dx<0?-1:1});}}} onPointerUp={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);const d=drag.current;drag.current=null;setDragging(false);if(d?.moved){if(!living){react('land',650);pos.current=safePoint(pos.current.x,pos.current.y);}target.current={...pos.current};velocity.current={x:0,y:0};}if(d&&!d.moved){if(sleep){setSleep(false);speak('Okay, I’m up.')}else toggleMenu()}}} onPointerCancel={()=>{drag.current=null;setDragging(false);pos.current=safePoint(pos.current.x,pos.current.y);velocity.current={x:0,y:0};target.current={...pos.current}}} onClick={e=>{if(e.detail===0){if(sleep){setSleep(false);speak('Okay, I’m up.')}else toggleMenu()}}} onKeyDown={e=>{const v={ArrowLeft:[-60,0],ArrowRight:[60,0],ArrowUp:[0,-60],ArrowDown:[0,60]}[e.key];if(v){e.preventDefault();setMenu(false);if(living)steer(v);else move(target.current.x+v[0],target.current.y+v[1]);}if(e.key==='Escape')setMenu(false)}}><span className="snoopy-performance" data-skill={toolView.tool||undefined} data-phase={toolView.phase||undefined} style={{transform:toolView.performance||(toolView.tool?undefined:pose.transform)||undefined}}><SnoopySprite action={toolView.tool?(toolView.tool==='hop'?toolView.spriteAction:toolView.tool==='dash'?undefined:toolView.tool):pose.kind==='action'?pose.action:undefined} standingFrame={toolView.spriteFrame??2} actionProgress={toolView.progress} frame={sleep?0:pose.frame} walking={!sleep&&pose.walking} standing={!sleep&&!pose.walking&&pose.kind!=='wake'} facing={pose.facing}/></span></button>
  </div>
  {menu&&createPortal(<section ref={panel} id="snoopy-menu" className="snoopy-control-panel" role="dialog" aria-modal="false" aria-labelledby="snoopy-panel-title" onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();closeMenu();}}}>
  <div className="snoopy-panel-heading"><div><span className="snoopy-panel-eyebrow">YOUR LITTLE COMPANION</span><h2 id="snoopy-panel-title">Snoopy</h2></div><button className="snoopy-panel-close" aria-label="Close Snoopy controls" onClick={closeMenu}>Close</button></div>

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildPlatforms,choosePerchX,choosePlatform,jumpPoint,jumpDuration,bodyBox} from '../src/snoopyTerrain.js';
-import {createAgent,decide,tickDrives,rememberVisit,AGENT_TIMING} from '../src/snoopyAgent.js';
+import {createAgent,decide,tickDrives,rememberVisit,pickRoutine,moodFor,MOODS,AGENT_TIMING} from '../src/snoopyAgent.js';
+import {planRoutine,sampleRoutine,jumpPhase,ROUTINE_NAMES,POSES,JUMP_CROUCH} from '../src/snoopyRoutines.js';
 
 const view={width:1280,height:800,size:96,top:64};
 const node=(id,left,top,width,height=60)=>({id,rect:{left,right:left+width,top,bottom:top+height}});
@@ -76,8 +77,19 @@ test('a lingering hover invites him over, even mid-rest; a glance does not',()=>
  assert.equal(decide(agent,senses({hover:{id:'a',ms:5000}}),()=>.99).intent,null);
 });
 
-test('he walks toward a nearby moving cursor and stops short of it',()=>{
+test('he greets a newly arrived cursor with a wave, then not again for a while',()=>{
  const agent=rested(createAgent(0));
+ const first=decide(agent,senses({cursor:{x:200,y:260,ageMs:100}}),()=>.99);
+ assert.deepEqual(first.intent,{type:'routine',name:'wave',facing:-1});
+ assert.equal(first.agent.wavedAt,10000);
+ const soon=decide(rested(first.agent),senses({now:20000,cursor:{x:200,y:260,ageMs:100}}),()=>.99);
+ assert.notEqual(soon.intent.name,'wave');
+ const later=decide(rested(first.agent),senses({now:10000+AGENT_TIMING.waveEvery,cursor:{x:200,y:260,ageMs:100}}),()=>.99);
+ assert.equal(later.intent.name,'wave');
+});
+
+test('he walks toward a nearby moving cursor and stops short of it',()=>{
+ const agent={...rested(createAgent(0)),wavedAt:10000};
  const {intent}=decide(agent,senses({cursor:{x:440,y:260,ageMs:100}}),()=>.99);
  assert.equal(intent.type,'walk');assert.equal(intent.reason,'cursor');
  assert.ok(intent.x>300&&intent.x<440);
@@ -85,7 +97,7 @@ test('he walks toward a nearby moving cursor and stops short of it',()=>{
  assert.deepEqual(close,{type:'watch',facing:1});
  // A stale or distant pointer is not followed.
  const stale=decide({...agent,curiosity:0},senses({cursor:{x:440,y:260,ageMs:9000}}),()=>.99).intent;
- assert.equal(stale.type,'hop');
+ assert.notEqual(stale.reason,'cursor');assert.notEqual(stale.name,'wave');
  const far=decide({...agent,curiosity:0},senses({cursor:{x:440,y:790,ageMs:100}}),()=>.7).intent;
  assert.notEqual(far.reason,'cursor');
 });
@@ -119,10 +131,81 @@ test('strolls stay on his platform and drives stay bounded',()=>{
  const agent={...rested(createAgent(0)),curiosity:0};
  for(const r of [0,.2,.4,.59]){
   const {intent}=decide(agent,senses(),()=>r);
-  if(intent.type==='walk')assert.ok(intent.x>=140&&intent.x<=460);
+  if(intent.type==='walk'){assert.ok(intent.x>=140&&intent.x<=460);assert.ok(intent.speed>=60&&intent.speed<=180);}
  }
  let drained=agent;
  for(let i=0;i<5000;i++)drained=tickDrives(drained,.25,{moving:true});
  assert.equal(drained.energy,0);
  assert.equal(tickDrives(agent,Number.NaN).energy,agent.energy);
+});
+
+test('idle choices draw on several routines and match his mood',()=>{
+ assert.equal(moodFor(.1),'tired');assert.equal(moodFor(.5),'calm');assert.equal(moodFor(.9),'playful');
+ for(const table of Object.values(MOODS))for(const name of Object.keys(table))assert.ok(ROUTINE_NAMES.includes(name),name);
+ const seen=new Set();
+ for(let i=0;i<40;i++)seen.add(pickRoutine(.9,[],()=>i/40));
+ assert.ok(seen.size>=5,[...seen].join());
+ // Tired, he settles down rather than cheering.
+ for(let i=0;i<40;i++)assert.ok(!['cheer','chaseTail','playBow'].includes(pickRoutine(.1,[],()=>i/40)));
+});
+
+test('he does not repeat either of his last two routines',()=>{
+ for(let i=0;i<50;i++){
+  const name=pickRoutine(.9,['cheer','playBow'],()=>i/50);
+  assert.ok(!['cheer','playBow'].includes(name),name);
+ }
+ // Even with every option recently used, he still picks something.
+ assert.ok(pickRoutine(.1,['lieDown','sit','lookAround','sniff']));
+ const agent={...rested(createAgent(0)),curiosity:0};
+ const {agent:next,intent}=decide(agent,senses(),()=>.75);
+ assert.equal(intent.type,'routine');
+ assert.equal(next.recent.at(-1),intent.name);
+ assert.equal(next.until,Infinity);
+});
+
+test('every routine uses real awake poses and ends where it began',()=>{
+ const steps=[0,.25,.5,.75,.99];
+ for(const name of ROUTINE_NAMES)for(const r of steps){
+  const plan=planRoutine(name,()=>r);
+  assert.ok(plan.duration>=300&&plan.duration<=9000,`${name} ${plan.duration}`);
+  for(const step of plan.steps){
+   if(step.pose.kind==='wake')assert.ok(step.pose.frame>=3&&step.pose.frame<=15,`${name} frame ${step.pose.frame}`);
+   if(step.pose.kind==='action')assert.ok(['swing','ladder','camera','portal'].includes(step.pose.action));
+   if(step.pose.kind==='walk')assert.ok(step.pose.frame>=0&&step.pose.frame<8);
+  }
+  const end=sampleRoutine(plan,plan.duration);
+  assert.equal(end.done,true);
+  // Lift and squash return to rest, so he never stops mid-air or squashed.
+  assert.ok(Math.abs(end.lift)<.01);assert.ok(Math.abs(end.squash[0]-1)<.01&&Math.abs(end.squash[1]-1)<.01);
+ }
+ assert.equal(planRoutine('nope'),null);
+ assert.equal(sampleRoutine(null,0),null);
+});
+
+test('the same routine plays differently each time',()=>{
+ let seed=1;const random=()=>(seed=(seed*16807)%2147483647)/2147483647;
+ for(const name of ['sit','lieDown','lookAround','cheer','chaseTail']){
+  const shapes=new Set();
+  for(let i=0;i<8;i++){const plan=planRoutine(name,random);shapes.add(plan.steps.map(s=>`${s.pose.frame??s.pose.action}:${s.ms}`).join(','));}
+  assert.ok(shapes.size>=3,`${name} only had ${shapes.size} variants`);
+ }
+});
+
+test('sampling follows steps, flips and arcs',()=>{
+ const plan=planRoutine('lookAround',()=>.99);
+ const first=sampleRoutine(plan,0);
+ assert.equal(first.index,0);assert.equal(first.flips,0);
+ const last=sampleRoutine(plan,plan.duration-1);
+ assert.equal(last.flips,plan.steps.filter(s=>s.flip).length);
+ const cheer=planRoutine('cheer',()=>.5),leap=cheer.steps.find(s=>s.lift);
+ assert.ok(sampleRoutine(cheer,leap.start+leap.ms/2).lift>10);
+ assert.equal(sampleRoutine(cheer,Number.NaN).index,0);
+});
+
+test('jumps crouch first, fly, then land',()=>{
+ assert.equal(jumpPhase(0,500).phase,'crouch');
+ assert.equal(jumpPhase(JUMP_CROUCH+250,500).phase,'air');
+ assert.ok(Math.abs(jumpPhase(JUMP_CROUCH+250,500).progress-.5)<1e-9);
+ assert.equal(jumpPhase(JUMP_CROUCH+500,500).phase,'land');
+ assert.ok(POSES.sit.every(f=>f>=3));
 });
