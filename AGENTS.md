@@ -98,3 +98,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 ## Site polish, 10 November
 - User wants the overall site to look better. Done without new content: sections ease in on arrival (reduced motion off), website screenshots sit in a quiet browser frame, project rows tint on hover with a small preview zoom, footer enlarged for legibility, and baked-in browser scrollbars trimmed from the Sunset, Apparel, Maryvale, Science Fair and OncoSync screenshots.
 - Open content questions for the user: "Room for what's next" repeats OncoSync; "Beyond work" promises film, photography and volleyball with no images; Berkeley roles are absent.
+
+## Roller-blind intro exit, 11 November
+- User wants the doghouse landing to leave like a window blind: on Explore it tugs down, then flies up and reveals the whole website. IntroBlind.jsx wraps the intro frame: tug about 60px, a short hold, then a fast lift (about one second in all), with a red hem bar and centre pull tab along the bottom. Visitors can also drag the tab down and let go to raise it. Replaying the intro from the header drops the blind back down with a small bounce. Reduced motion keeps the original fade.
+- The intro's own .intro.reveal slide is disabled (homepage-src/src/styles.css and the built public/homepage CSS) so the doghouse rides up on the blind. The intro's 1.2-second enter message is ignored while the blind is lifting; the blind's own finish removes the intro.
