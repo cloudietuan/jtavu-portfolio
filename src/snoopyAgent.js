@@ -7,8 +7,8 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 // Which routines suit his mood. Tired he settles down; rested he plays.
 export const MOODS=Object.freeze({
  tired:{lieDown:4,sit:3,lookAround:2,sniff:1},
- calm:{sit:3,lookAround:3,sniff:3,lieDown:1,playBow:1},
- playful:{cheer:3,playBow:3,chaseTail:2,sniff:2,lookAround:1,sit:1},
+ calm:{sit:3,lookAround:2,sniff:2,curious:3,happyWag:2,lieDown:1,playBow:1},
+ playful:{cheer:3,playBow:3,chaseTail:2,happyWag:3,curious:2,sniff:1,lookAround:1,sit:1},
 });
 export const moodFor=energy=>energy<.35?'tired':energy<.7?'calm':'playful';
 

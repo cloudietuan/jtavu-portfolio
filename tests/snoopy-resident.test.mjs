@@ -209,3 +209,82 @@ test('jumps crouch first, fly, then land',()=>{
  assert.equal(jumpPhase(JUMP_CROUCH+500,500).phase,'land');
  assert.ok(POSES.sit.every(f=>f>=3));
 });
+
+import {flingStep,findDropTarget,GRAVITY} from '../src/snoopyTerrain.js';
+import {tailWag,clampJoints,LIMITS,TAIL_SHAPE,TAIL_ROOT,NECK,HEAD_BAND} from '../src/snoopyArticulation.js';
+
+const fly=(state,opts,steps=400)=>{let s=state;for(let i=0;i<steps&&!s.landed;i++)s=flingStep(s,1/60,opts);return s;};
+const world={width:1280,height:800,size:96,top:64};
+
+test('a thrown Snoopy lands on the first surface he falls through',()=>{
+ const platforms=buildPlatforms([node('high',100,300,500),node('low',100,600,500)],world);
+ const landed=fly({x:300,y:150,vx:0,vy:0},{...world,platforms});
+ assert.equal(landed.landed.id,'high');assert.equal(landed.y,300);
+ // Thrown upward, he still comes down onto the same surface.
+ const tossed=fly({x:300,y:250,vx:0,vy:-900},{...world,platforms});
+ assert.equal(tossed.landed.id,'high');
+ // Starting below a surface, he passes it and lands on the next one down.
+ assert.equal(fly({x:300,y:400,vx:0,vy:0},{...world,platforms}).landed.id,'low');
+});
+
+test('he bounces off walls and the floor, then settles',()=>{
+ const s=fly({x:1100,y:300,vx:2400,vy:0},{...world,platforms:[]},2000);
+ assert.equal(s.landed,'floor');
+ assert.ok(s.y<=world.height&&s.x>=world.size/2&&s.x<=world.width-world.size/2);
+ const first=flingStep({x:1240,y:300,vx:2400,vy:0},1/60,{...world,platforms:[]});
+ assert.ok(first.vx<0,'bounced off the right wall');
+ const bonk=flingStep({x:400,y:170,vx:0,vy:-2000},1/60,{...world,platforms:[]});
+ assert.ok(bonk.vy>0&&bonk.y>=world.top+world.size,'bonked the header');
+ assert.ok(GRAVITY>1000);
+ const still=flingStep({x:400,y:300,vx:0,vy:0},Number.NaN,{...world,platforms:[]});
+ assert.equal(still.x,400);assert.equal(still.y,300);
+});
+
+test('he finds a lower ledge to drop onto, but not past the screen edge',()=>{
+ const [top,below,far]=buildPlatforms([node('top',300,300,300),node('below',550,520,400),node('far',300,780,10)],world);
+ const drop=findDropTarget([top,below],top,{size:96,width:1280});
+ assert.equal(drop.platform.id,'below');assert.equal(drop.side,1);assert.equal(drop.edgeX,top.maxX);
+ assert.equal(findDropTarget([top],top,{size:96,width:1280}),null);
+ assert.equal(findDropTarget([top,below],null,{size:96,width:1280}),null);
+ // A surface running off the screen has no real ledge on that side.
+ const [wide]=buildPlatforms([node('wide',0,300,1280)],world);
+ const [under]=buildPlatforms([node('under',900,520,300)],world);
+ assert.equal(findDropTarget([wide,under],wide,{size:96,width:1280}),null);
+});
+
+test('head and tail move only within believable limits',()=>{
+ for(let ms=0;ms<3000;ms+=37){const w=tailWag(ms,{speed:1.6,amplitude:30});assert.ok(Math.abs(w)<=LIMITS.tail);}
+ assert.deepEqual(clampJoints({head:50,tail:-50}),{head:LIMITS.head,tail:-LIMITS.tail});
+ assert.deepEqual(clampJoints({head:Number.NaN}),{head:0,tail:0});
+ assert.ok(TAIL_SHAPE.every(([x,y])=>y>HEAD_BAND&&x<NECK.x));
+ assert.ok(TAIL_ROOT.y>HEAD_BAND);
+});
+
+test('new routines tilt the head, wag the tail and show emotes',()=>{
+ const curious=planRoutine('curious',()=>.2);
+ const tilted=curious.steps.find(s=>s.head);
+ assert.ok(Math.abs(sampleRoutine(curious,tilted.start+300).head)>5);
+ assert.equal(sampleRoutine(curious,tilted.start+1).emote,'?');
+ const wag=planRoutine('happyWag',()=>.5),tails=new Set();
+ for(let t=0;t<wag.duration;t+=40)tails.add(Math.round(sampleRoutine(wag,t).tail));
+ assert.ok(tails.size>5);
+ // Moving parts only apply to the standing pose they were cut from.
+ for(const name of ROUTINE_NAMES){const plan=planRoutine(name,()=>.5);for(let t=0;t<plan.duration;t+=50){const s=sampleRoutine(plan,t);if(s.pose.kind!=='stand'){assert.equal(s.head,0);assert.equal(s.tail,0);}}}
+ assert.ok(ROUTINE_NAMES.includes('peek'));
+});
+
+test('a falling Snoopy is caught by a surface the page scrolls up into him',()=>{
+ // The surface starts below him and rises 30px a frame, faster than he falls.
+ let s={x:300,y:300,vx:0,vy:0},surfaceY=420,landed=null;
+ for(let i=0;i<40&&!landed;i++){
+  surfaceY-=30;
+  const [pl]=buildPlatforms([node('rising',100,surfaceY,500)],world);
+  s=flingStep(s,1/60,{...world,platforms:pl?[pl]:[],shift:30});
+  landed=s.landed;
+ }
+ assert.equal(landed?.id,'rising');
+ // Without accounting for the scroll, the same surface slips past him.
+ s={x:300,y:300,vx:0,vy:0};surfaceY=420;landed=null;
+ for(let i=0;i<40&&!landed;i++){surfaceY-=30;const [pl]=buildPlatforms([node('rising',100,surfaceY,500)],world);s=flingStep(s,1/60,{...world,platforms:pl?[pl]:[]});landed=s.landed;}
+ assert.notEqual(landed?.id,'rising');
+});

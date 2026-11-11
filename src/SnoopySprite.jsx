@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import frames from './snoopyFrames.json';
 import actionFrames from './snoopyActionFrames.json';
 import {drawBow} from './snoopyBow.js';
+import {drawArticulated} from './snoopyArticulation.js';
 
 const textures = {};
 // A shared coarse sprite grid keeps sleeping and moving poses equally crisp.
@@ -17,7 +18,7 @@ function loadTexture(name) {
   return textures[name];
 }
 
-export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFAULT_GRID, action, actionProgress = 0, standingFrame = 2 }) {
+export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFAULT_GRID, action, actionProgress = 0, standingFrame = 2, head = 0, tail = 0 }) {
   const GRID = grid;
   const UNIT = GRID / 384;
   const canvas = useRef(null);
@@ -39,7 +40,12 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
       // A bounded source rectangle prevents neighboring frames from appearing.
       // Every pose shares the same bottom-center foot anchor.
       const climbLift = action === 'ladder' ? Math.sin(Math.min(1, Math.max(0, actionProgress)) * Math.PI * 8) * 3 : 0;
-      if (action === 'bow') {
+      const articulated = !actionFrame && action !== 'bow' && standing && !walking && standingFrame === 2 && (head || tail);
+      if (articulated) {
+        ctx.translate((384 - width) / 2 * UNIT, (376 - height) * UNIT);
+        ctx.scale(scale * UNIT, scale * UNIT);
+        drawArticulated(ctx, texture, f, { head, tail });
+      } else if (action === 'bow') {
         ctx.translate((384 - width) / 2 * UNIT, (376 - height) * UNIT);
         ctx.scale(scale * UNIT, scale * UNIT);
         drawBow(ctx, texture, f, actionProgress);
@@ -49,6 +55,6 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
 
     });
     return () => { cancelled = true; };
-  }, [frame, walking, standing, facing, grid, action, actionProgress, standingFrame]);
+  }, [frame, walking, standing, facing, grid, action, actionProgress, standingFrame, head, tail]);
   return <canvas ref={canvas} className="wake-sprite" width={GRID} height={GRID} aria-hidden="true" />;
 }

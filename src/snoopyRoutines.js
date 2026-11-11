@@ -4,6 +4,8 @@
 // random when a routine is planned, so the same routine never plays the same
 // way twice. Pure: no DOM, no timers.
 
+import {tailWag} from './snoopyArticulation.js';
+
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
 // Wake-sheet frames that read well while awake. 0-2 are drawn from the sleep
@@ -19,7 +21,8 @@ const act=action=>({kind:'action',action});
 const between=(random,a,b)=>a+(b-a)*random();
 const pick=(random,list)=>list[Math.min(list.length-1,Math.floor(random()*list.length))];
 
-// Each builder returns steps: {ms, pose, lean?, lift?, squash?, flip?, walk?}.
+// Each builder returns steps: {ms, pose, lean?, lift?, squash?, flip?, head?, wag?, emote?}.
+// head and wag only show on the standing pose, whose head and tail can move.
 const BUILDERS={
  sit(random){
   const steps=[{ms:130,pose:wake(POSES.crouch)},{ms:130,pose:wake(POSES.sitUp)},{ms:between(random,1200,2300),pose:wake(pick(random,POSES.sit))}];
@@ -29,26 +32,26 @@ const BUILDERS={
  },
  lieDown(random){
   const steps=[{ms:150,pose:wake(POSES.crouch)},{ms:200,pose:wake(POSES.playBow)},{ms:between(random,1400,2600),pose:wake(POSES.lieAlert)},{ms:between(random,700,1200),pose:wake(POSES.lieLook)}];
-  if(random()<.7)steps.push({ms:380,pose:wake(POSES.lieWink)},{ms:between(random,600,1300),pose:wake(POSES.lieLook)});
+  if(random()<.7)steps.push({ms:380,pose:wake(POSES.lieWink),emote:'♥'},{ms:between(random,600,1300),pose:wake(POSES.lieLook)});
   steps.push({ms:200,pose:wake(POSES.playBow)},{ms:150,pose:wake(POSES.crouch)});
   return steps;
  },
  lookAround(random){
   const steps=[{ms:between(random,250,450),pose:stand}];
   const turns=1+Math.floor(random()*3);
-  for(let i=0;i<turns;i++)steps.push({ms:between(random,500,1000),pose:stand,flip:true,lean:random()<.5?-4:3});
+  for(let i=0;i<turns;i++)steps.push({ms:between(random,500,1000),pose:stand,flip:true,head:pick(random,[-9,-5,6,10])});
   if(random()<.4)steps.push({ms:between(random,700,1100),pose:wake(pick(random,POSES.sit))});
   return steps;
  },
  sniff(random){
   const steps=[];
   const sniffs=2+Math.floor(random()*2);
-  for(let i=0;i<sniffs;i++)steps.push({ms:between(random,280,420),pose:stand,lean:12+random()*6},{ms:between(random,160,260),pose:stand,lean:5});
+  for(let i=0;i<sniffs;i++)steps.push({ms:between(random,280,420),pose:stand,lean:6+random()*4,head:11},{ms:between(random,160,260),pose:stand,lean:3,head:6});
   if(random()<.5)steps.push({ms:600,pose:stand,flip:true});
   return steps;
  },
  wave(random){
-  const steps=[{ms:120,pose:act('portal'),squash:[1.05,.92]}];
+  const steps=[{ms:120,pose:act('portal'),squash:[1.05,.92],emote:'hi!'}];
   const beats=3+Math.floor(random()*2);
   for(let i=0;i<beats;i++)steps.push({ms:180,pose:act('ladder'),lean:i%2?-6:6,lift:4});
   steps.push({ms:between(random,300,500),pose:wake(pick(random,POSES.sitSmile))});
@@ -56,12 +59,23 @@ const BUILDERS={
  },
  cheer(random){
   const hops=2+Math.floor(random()*2),steps=[];
-  for(let i=0;i<hops;i++)steps.push({ms:150,pose:act('portal'),squash:[1.08,.9]},{ms:between(random,260,340),pose:act('swing'),lift:14+random()*10});
+  for(let i=0;i<hops;i++)steps.push({ms:150,pose:act('portal'),squash:[1.08,.9],emote:i?undefined:'♪'},{ms:between(random,260,340),pose:act('swing'),lift:14+random()*10});
   steps.push({ms:160,pose:act('portal'),squash:[1.06,.92]},{ms:200,pose:stand});
   return steps;
  },
  playBow(random){
-  return [{ms:between(random,500,900),pose:wake(POSES.playBow),lean:-3},{ms:140,pose:act('portal'),squash:[1.07,.9]},{ms:300,pose:act('swing'),lift:18},{ms:150,pose:act('portal'),squash:[1.05,.93]},{ms:200,pose:stand}];
+  return [{ms:between(random,500,900),pose:wake(POSES.playBow),lean:-3,emote:'!'},{ms:140,pose:act('portal'),squash:[1.07,.9]},{ms:300,pose:act('swing'),lift:18},{ms:150,pose:act('portal'),squash:[1.05,.93]},{ms:200,pose:stand}];
+ },
+ curious(random){
+  const first=random()<.5?1:-1;
+  return [{ms:200,pose:stand},{ms:between(random,550,900),pose:stand,head:10*first,emote:'?'},{ms:between(random,500,850),pose:stand,head:-9*first},{ms:between(random,300,500),pose:stand,head:5*first},{ms:180,pose:stand}];
+ },
+ happyWag(random){
+  return [{ms:between(random,1200,2000),pose:stand,head:-4,wag:{speed:1.6,amplitude:15},emote:'♪'},{ms:between(random,500,800),pose:stand,wag:{speed:.8,amplitude:8}}];
+ },
+ // Looking over a ledge before stepping off it.
+ peek(random){
+  return [{ms:between(random,650,1000),pose:stand,lean:7,head:11,emote:'?'},{ms:350,pose:stand,lean:10,head:12,wag:{speed:1.2,amplitude:6}}];
  },
  chaseTail(random){
   const spins=5+Math.floor(random()*4),steps=[];
@@ -94,8 +108,13 @@ export function sampleRoutine(plan,elapsed){
  const flips=plan.steps.slice(0,index+1).filter(s=>s.flip).length;
  const local=clamp((t-step.start)/step.ms,0,1);
  const arc=Math.sin(local*Math.PI);
+ // The head eases between tilts instead of snapping.
+ const prev=index?plan.steps[index-1].head||0:0,cur=step.head||0;
+ const head=prev+(cur-prev)*clamp((t-step.start)/120,0,1);
  return {
-  pose:step.pose,flips,index,done:elapsed>=plan.duration,
+  pose:step.pose,flips,index,done:elapsed>=plan.duration,emote:step.emote||null,
+  head:step.pose.kind==='stand'?head:0,
+  tail:step.pose.kind==='stand'&&step.wag?tailWag(t,step.wag):0,
   lean:step.lean||0,
   lift:(step.lift||0)*arc,
   squash:step.squash?[1+(step.squash[0]-1)*arc,1+(step.squash[1]-1)*arc]:[1,1],

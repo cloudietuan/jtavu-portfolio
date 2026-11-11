@@ -42,3 +42,14 @@ body footer{padding-bottom:128px}
 .snoopy-move-effects{position:fixed;z-index:34;pointer-events:none;width:0;height:0}.snoopy-ground-shadow{position:absolute;left:-24px;top:-2px;width:48px;height:5px;border-radius:50%;background:#30201916;filter:blur(1px)}.snoopy-dust{position:absolute;left:-32px;top:-12px}.snoopy-dust i{position:absolute;width:9px;height:9px;border:1px solid #b7422f55;border-radius:50%;animation:snoopy-dust-puff 420ms ease-out infinite}.snoopy-dust i:nth-child(2){left:-10px;top:-3px;animation-delay:140ms}.snoopy-dust i:nth-child(3){left:6px;top:3px;animation-delay:280ms}.snoopy-landing-rings{position:absolute;left:-25px;top:-3px;width:50px;height:7px;border:1px solid #b7422f66;border-radius:50%;animation:snoopy-impact-ring 400ms ease-out both}
 @keyframes snoopy-dust-puff{from{opacity:.65;transform:translate(0,0) scale(.4)}to{opacity:0;transform:translate(-18px,-7px) scale(1.2)}}@keyframes snoopy-impact-ring{from{opacity:.8;transform:scale(.5)}to{opacity:0;transform:scale(1.6)}}
 @media(prefers-reduced-motion:reduce){.snoopy-move-effects{display:none}}
+
+/* Small mood bubbles: a quick read of what he is thinking. */
+.snoopy-emote{position:absolute;left:58%;top:-14%;min-width:22px;padding:2px 7px 3px;text-align:center;background:#fff;border:1px solid #ead7d2;border-radius:12px 12px 12px 3px;color:var(--accent);font:600 13px/1.2 'DM Sans',sans-serif;box-shadow:0 3px 10px #34201a14;pointer-events:none;white-space:nowrap;animation:snoopy-emote-pop 1.5s ease-out both}
+.snoopy-companion.right .snoopy-emote{left:auto;right:58%;border-radius:12px 12px 3px 12px}
+@keyframes snoopy-emote-pop{0%{opacity:0;transform:translateY(6px) scale(.6)}12%{opacity:1;transform:translateY(-2px) scale(1.08)}22%{transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+@media(prefers-reduced-motion:reduce){.snoopy-emote{animation:none}}
+
+/* Resting in the corner: no card behind him, just a soft shadow at his feet. */
+.snoopy-companion[data-docked=true]{background:none;box-shadow:none;border-radius:0}
+.snoopy-companion[data-docked=true]::after{content:"";position:absolute;left:22%;right:22%;bottom:-3px;height:7px;border-radius:50%;background:#2a1d1414;filter:blur(1.5px);pointer-events:none}
+.snoopy-companion[data-docked=true] .snoopy-dock-label{display:none}
