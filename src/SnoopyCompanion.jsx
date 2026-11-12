@@ -35,7 +35,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  const roam=!paused;const reduced=systemReduced||quietMotion;
  // Living on the page is the default. Pause, reduced motion and the roaming
  // preference each return him to the predictable corner dock.
- const living=freeRoam&&roam&&!reduced;
+ const living=freeRoam&&roam&&!reduced;const livingRef=useRef(false);livingRef.current=living;
  useEffect(()=>{try{sessionStorage.setItem('jtavu-snoopy-free-roam',String(freeRoam))}catch{}},[freeRoam]);
  useEffect(()=>{try{sessionStorage.setItem('jtavu-snoopy-less-motion',String(quietMotion))}catch{}},[quietMotion]);
  function setRoam(update){const next=typeof update==='function'?update(roam):update;onPausedChange?.(!next);}
@@ -285,6 +285,8 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
      const wag=agent.current.energy>.55?tailWag(now,{speed:.7,amplitude:6}):0;
      showPose({walking:false,frame:2,facing:facingNow(),head:Math.round(look),tail:Math.round(wag)});
     }
+    // Guiding: he stays put beside the project he is explaining.
+    if(r.guiding)return;
     const host=hover.current.host,hovered=host?.isConnected?r.platforms.find(q=>host.contains(q.element)):null,c=cursor.current;
     const result=decide(agent.current,{now,platformId:p.id,otherPlatforms:r.platforms.filter(q=>q.element!==p.element).length,cursor:{x:c.x,y:c.y,ageMs:now-c.at},snoopy:pos.current,span:{minX,maxX},userIdleMs:now-userAt.current,hover:hovered?{id:hovered.id,ms:now-hover.current.at}:null,size});
     agent.current=result.agent;const intent=result.intent;
@@ -509,7 +511,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  // A small command surface lets the authored canvas offer the same actions as
  // Snoopy's own menu. Commands never bypass pause, sleep or reduced motion.
  useEffect(()=>{
-  const command=e=>{if(!active)return;const name=e.detail?.command;if(name==='menu'){opener.current=document.activeElement;stopAction();setMenu(true);menuOpen.current=true;return;}if(name==='camera'||name==='ball'||name==='explore')worldAction(name==='explore'?'inspect':name);};
+  const command=e=>{if(!active)return;const name=e.detail?.command;if(name==='guide'){const r=resident.current,el=document.getElementById(e.detail.target);r.guiding=true;showEmote('!');if(livingRef.current&&el&&!sleep){const here=r.perch?.element;if(!(here&&el.contains(here))){r.prefer=el;r.routine=null;r.walkTo=null;if(docked.current){docked.current=false;}relocate(performance.now(),{nearby:false});}}return;}if(name==='guide-end'){const r=resident.current;if(r.guiding){r.guiding=false;agent.current=settle(agent.current,performance.now(),1200);}return;}if(name==='menu'){opener.current=document.activeElement;stopAction();setMenu(true);menuOpen.current=true;return;}if(name==='camera'||name==='ball'||name==='explore')worldAction(name==='explore'?'inspect':name);};
   window.addEventListener('jtavu:snoopy-command',command);
   return()=>window.removeEventListener('jtavu:snoopy-command',command);
  },[active,roam,sleep,reduced,size]);

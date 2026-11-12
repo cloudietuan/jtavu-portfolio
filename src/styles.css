@@ -248,3 +248,42 @@ footer{border-top:0}
  .contact-section{padding:75px 0 60px}
  .ticker{margin-top:40px;padding:18px 0}
 }
+
+/* Snoopy's quick take: a small guide card that follows him. */
+.snoopy-guide{position:fixed;left:0;top:0;z-index:60;width:min(340px,calc(100vw - 24px));padding:18px 20px 18px;background:#fff;border:1px solid #eaded9;border-radius:16px;box-shadow:0 1px 2px #1a12080a,0 22px 50px -16px #1a120840;font-size:13px;line-height:1.55;animation:guide-in .28s cubic-bezier(.2,.8,.3,1.2)}
+.snoopy-guide:focus{outline:none}.snoopy-guide:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@keyframes guide-in{from{opacity:0;scale:.92}to{opacity:1;scale:1}}
+.guide-close{position:absolute;right:8px;top:6px;width:34px;height:34px;border:0;background:none;font-size:20px;line-height:1;color:#8a7f78;border-radius:50%}
+.guide-close:hover{background:#b1261e0d;color:var(--accent)}
+.guide-kicker{margin:0 30px 8px 0;font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;color:#8a7f78}
+.guide-kicker span{display:block;color:var(--accent);margin-bottom:2px}
+.snoopy-guide h3{font:italic 26px/1.1 Georgia,serif;letter-spacing:-.02em;margin:0 0 8px}
+.guide-meta{margin:0 0 12px;color:#6f6660;font-size:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.snoopy-guide dl{margin:0;border-top:1px solid #f0e9e4}
+.snoopy-guide dl div{padding:9px 0;border-bottom:1px solid #f0e9e4}
+.snoopy-guide dt{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.snoopy-guide dd{margin:0}
+.guide-line{margin:0 0 12px;font-size:14px}
+.guide-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.guide-actions button,.guide-actions a,.guide-chips button{border:1px solid #e6dfda;background:#fff;border-radius:30px;padding:8px 14px;font-size:12px;transition:background .2s,color .2s,border-color .2s}
+.guide-actions button:hover,.guide-actions a:hover,.guide-chips button:hover{border-color:var(--accent);color:var(--accent)}
+.guide-actions .guide-primary{background:var(--accent);border-color:var(--accent);color:#fff}.guide-actions .guide-primary:hover{background:#8f1d17;color:#fff}
+.guide-chips{display:flex;flex-wrap:wrap;gap:7px}
+.guide-chips i,.project-directory i{font-style:normal;color:var(--accent);font-size:10px;letter-spacing:1px;margin-right:7px}
+.snoopy-guide[data-side=sheet]{width:calc(100vw - 24px);max-height:62vh;overflow:auto}
+@media(prefers-reduced-motion:reduce){.snoopy-guide{animation:none}}
+
+/* Project directory: the whole body of work at a glance, numbered. */
+.project-directory{list-style:none;margin:34px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid #e4dfda;border-left:1px solid #e4dfda}
+.project-directory li{border-right:1px solid #e4dfda;border-bottom:1px solid #e4dfda}
+.project-directory button{display:grid;grid-template-columns:auto 1fr;column-gap:4px;row-gap:3px;width:100%;height:100%;text-align:left;border:0;background:none;padding:18px 18px 16px;transition:background .2s}
+.project-directory button:hover{background:#b1261e08}
+.project-directory i{grid-row:1/4;padding-top:5px}
+.project-directory b{font:italic 400 21px/1.15 Georgia,serif;letter-spacing:-.01em}
+.project-directory button:hover b{color:var(--accent)}
+.project-directory span{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#8a7f78}
+.project-directory em{font-style:normal;font-size:11px;color:var(--accent)}
+.directory-hint{margin:14px 0 0;font-size:12px;color:#8a7f78}
+.section-kicker b{font-weight:500;margin-right:12px;padding-right:12px;border-right:1px solid #e0cfc9}
+@media(max-width:900px){.project-directory{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.project-directory{grid-template-columns:1fr}.project-directory button{padding:14px 12px}}
