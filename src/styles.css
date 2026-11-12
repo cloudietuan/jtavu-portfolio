@@ -182,3 +182,5 @@ footer{font-size:11px;letter-spacing:1.5px;padding:28px 4%;color:var(--accent)}f
 .blind-snoopy-bubble{position:absolute;left:70%;top:18%;padding:2px 8px 3px;background:#fff;border:1px solid #ead7d2;border-radius:12px 12px 12px 3px;color:#b1261e;font:600 13px/1.2 'DM Sans',sans-serif;white-space:nowrap;opacity:0;box-shadow:0 3px 10px #34201a14}
 .blind-snoopy-bubble.is-on{animation:snoopy-emote-pop 1.2s ease-out both}
 @media(max-width:700px){.blind-snoopy{width:80px;height:80px}}
+.intro-blind-tab{transform-origin:50% 0}
+.blind-snoopy-bubble{transform-origin:0 100%}

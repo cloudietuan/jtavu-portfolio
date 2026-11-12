@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {SnoopySprite} from './SnoopySprite';
+import {chooseVariant,planSwing} from './introSwing';
 
 // The doghouse introduction hangs over the site like a roller blind. On
 // Explore it gets a short tug down, then snaps up and rolls away, revealing the
@@ -11,33 +12,11 @@ const TUG=64;          // px pulled down before it lets go
 const PULL_TO_RAISE=46;// a manual pull past this raises the blind
 
 export const BLIND_TIMING=Object.freeze({tug:240,hold:70,raise:620,drop:720});
-// Snoopy's swing on the pull tab: the blind lifts a little, he leaps up and
-// grabs the tab, swings on it while his weight drags the blind down, then
-// lets go as it snaps up, and drops onto the website.
-export const SWING_TIMING=Object.freeze({lift:420,leap:360,swing:1050,fly:560});
-const easeOut=k=>1-Math.pow(1-k,3),easeInOut=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
-
-/** Pure choreography: blind offset, hand position and rotation at time t (ms). */
-export function swingPose(t,{width,height,size}){
- const T=SWING_TIMING,lift=Math.min(300,height*.4),floor=Math.min(150,lift*.5),cx=width/2;
- const handsAt=blindY=>height+blindY-4;
- if(t<T.lift)return {phase:'lift',blindY:-lift*easeOut(t/T.lift),visible:false};
- if(t<T.lift+T.leap){
-  const k=(t-T.lift)/T.leap,startX=cx+Math.min(220,width*.2),startY=height+size*1.1,endY=handsAt(-lift);
-  return {phase:'leap',blindY:-lift,visible:true,x:startX+(cx-startX)*easeOut(k),y:startY+(endY-startY)*easeOut(k)-90*4*k*(1-k),rot:-28*(1-k)};
- }
- if(t<T.lift+T.leap+T.swing){
-  const k=(t-T.lift-T.leap)/T.swing;
-  // His weight drags the blind down in bobs that follow each swing.
-  const blindY=-lift+(lift-floor)*easeInOut(k)+9*Math.sin(k*Math.PI*6)*(1-k);
-  return {phase:'swing',blindY,visible:true,x:cx,y:handsAt(blindY),rot:24*Math.sin(k*Math.PI*2*1.6)*(1-.55*k)};
- }
- return {phase:'release',blindY:-floor,visible:true,x:cx,y:handsAt(-floor),rot:0};
-}
-
+// Snoopy brings the blind down with one of several stunts (introSwing.js),
+// never the same one twice in a row, then lets go and lands on the website.
 export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHandoff}){
  const panel=useRef(null),raising=useRef(false),pull=useRef(null),kid=useRef(null),bubble=useRef(null);
- const [swinging,setSwinging]=useState(false);
+ const [swinging,setSwinging]=useState(false),[stunt,setStunt]=useState(''),[kidPose,setKidPose]=useState({kind:'action',action:'swing',facing:1}),tab=useRef(null);
  const [reduced]=useState(()=>matchMedia('(prefers-reduced-motion: reduce)').matches);
  const [pulled,setPulled]=useState(0);
 
@@ -76,29 +55,39 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
   const el=panel.current;
   if(reduced||!el?.animate){raise(0);return;}
   raising.current=true;onRaiseStart?.();setSwinging(true);el.classList.add('is-raising');
-  const view={width:innerWidth,height:innerHeight,size:innerWidth<700?80:96},T=SWING_TIMING;
-  const t0=performance.now(),releaseAt=T.lift+T.leap+T.swing;
-  let last=t0,fall=null,flyEnd=0,grabbed=false;
-  const place=(x,y,rot)=>{const k=kid.current;if(k)k.style.transform=`translate(${(x-view.size/2).toFixed(1)}px,${(y-view.size*.05).toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;};
+  let last;try{last=sessionStorage.getItem('jtavu-blind-stunt')}catch{}
+  const name=chooseVariant(last);try{sessionStorage.setItem('jtavu-blind-stunt',name)}catch{}
+  const view={width:innerWidth,height:innerHeight,size:innerWidth<700?80:96},plan=planSwing(name,view),fly=620;
+  const t0=performance.now();
+  let prevT=t0,fall=null,flyEnd=0,said=null,poseKey='';
+  const show=(pose,facing)=>{const key=`${pose.kind}|${pose.frame}|${pose.action}|${facing}`;if(key!==poseKey){poseKey=key;setKidPose({...pose,facing});}};
+  const place=(anchor,x,y,rot,[sx,sy]=[1,1])=>{
+   const k=kid.current;if(!k)return;
+   const hands=anchor==='hands',top=hands?y-view.size*.05:y-view.size*.98;
+   k.style.transformOrigin=hands?'50% 5%':'50% 96%';
+   k.style.transform=`translate(${(x-view.size/2).toFixed(1)}px,${top.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${sx.toFixed(3)},${sy.toFixed(3)})`;
+  };
+  setStunt(name);
   const frame=now=>{
-   const t=now-t0,dt=Math.min(.05,(now-last)/1000);last=now;
+   const t=now-t0,dt=Math.min(.05,(now-prevT)/1000);prevT=now;
    if(!fall){
-    const p=swingPose(t,view);
+    const p=plan.sample(Math.min(t,plan.releaseAt-1));
     el.style.transform=`translateY(${p.blindY.toFixed(1)}px)`;
     if(kid.current)kid.current.style.opacity=p.visible?'1':'0';
-    if(p.visible)place(p.x,p.y,p.rot);
-    if(p.phase==='swing'&&!grabbed){grabbed=true;say('hup!');}
-    if(t>=releaseAt){
-     // Let go: the blind snaps up and he is tossed into the air above the site.
-     const prev=swingPose(releaseAt-16,view),spin=prev.rot>0?-1:1;
-     fall={x:p.x,y:p.y,vx:spin*150,vy:-820,rot:prev.rot};
-     el.style.transform='';
-     el.animate([{transform:`translateY(${p.blindY}px)`},{transform:`translateY(${p.blindY+18}px)`,offset:.12},{transform:'translateY(-104%)'}],{duration:T.fly,easing:'cubic-bezier(.6,0,.85,.35)',fill:'forwards'});
-     flyEnd=now+T.fly;say('wheee!');
+    if(p.visible){show(p.pose,p.facing||1);place(p.anchor,p.x,p.y,p.rot,p.squash);}
+    if(tab.current)tab.current.style.transform=p.tabRot?`rotate(${p.tabRot.toFixed(1)}deg)`:'';
+    if(p.say&&p.say!==said){said=p.say;say(p.say);}
+    if(t>=plan.releaseAt){
+     // Let go: the blind snaps up and away and he is thrown clear of it.
+     const r=plan.release;
+     fall={x:p.x,y:p.y,vx:r.vx,vy:r.vy,rot:p.rot,spin:r.spin};
+     el.style.transform='';if(tab.current)tab.current.style.transform='';
+     el.animate([{transform:`translateY(${p.blindY}px)`},{transform:`translateY(${p.blindY+16}px)`,offset:.1},{transform:'translateY(-104%)'}],{duration:fly,easing:'cubic-bezier(.6,0,.85,.35)',fill:'forwards'});
+     flyEnd=now+fly;say(r.say);show({kind:'action',action:'swing'},Math.sign(r.vx)||1);
     }
    }else{
-    fall.vy+=2200*dt;fall.x+=fall.vx*dt;fall.y+=fall.vy*dt;fall.rot+=(fall.vx>0?1:-1)*120*dt;
-    place(fall.x,fall.y,fall.rot);
+    fall.vy+=2200*dt;fall.x+=fall.vx*dt;fall.y+=fall.vy*dt;fall.rot+=fall.spin*dt;
+    place('hands',fall.x,fall.y,fall.rot);
     if(now>=flyEnd){
      // Hand the same Snoopy, mid-air, to the live companion on the website.
      onHandoff?.({x:fall.x,y:fall.y+view.size*.93,vx:fall.vx,vy:fall.vy});
@@ -134,9 +123,9 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
   <iframe ref={frameRef} className="homepage-intro" src="/homepage/index.html" title="JTAVU doghouse introduction" onLoad={()=>frameRef.current?.focus()}/>
   <div className="intro-blind-hem" aria-hidden="true"/>
   <button className="intro-blind-pull" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onClick={e=>{if(e.detail===0)raise(0);}} aria-label="Raise the intro and show the website">
-   <span className="intro-blind-tab"/>
+   <span ref={tab} className="intro-blind-tab"/>
   </button>
  </div>
- {swinging&&<div ref={kid} className="blind-snoopy" aria-hidden="true" style={{opacity:0}}><SnoopySprite frame={2} standing action="swing"/><span ref={bubble} className="blind-snoopy-bubble"/></div>}
+ {swinging&&<div ref={kid}  className="blind-snoopy" data-stunt={stunt} aria-hidden="true" style={{opacity:0}}><SnoopySprite frame={kidPose.frame??2} walking={kidPose.kind==='walk'} standing={kidPose.kind!=='walk'} action={kidPose.kind==='action'?kidPose.action:undefined} facing={kidPose.facing||1}/><span ref={bubble} className="blind-snoopy-bubble"/></div>}
  </>;
 }
