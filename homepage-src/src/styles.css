@@ -35,3 +35,5 @@
 
 /* The portfolio raises this intro like a roller blind, so the intro itself holds still while it lifts. */
 .intro.reveal{transform:none}
+/* He leaves the doghouse to go swing on the blind's pull tab. */
+.intro.reveal .snoopy{opacity:0;transition:opacity .22s ease .2s}
