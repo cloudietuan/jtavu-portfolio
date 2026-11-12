@@ -184,3 +184,67 @@ footer{font-size:11px;letter-spacing:1.5px;padding:28px 4%;color:var(--accent)}f
 @media(max-width:700px){.blind-snoopy{width:80px;height:80px}}
 .intro-blind-tab{transform-origin:50% 0}
 .blind-snoopy-bubble{transform-origin:0 100%}
+
+/* Design pass, 12 November: rhythm, two-column sections, a red closing band. */
+.site-header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--accent);transform-origin:0 50%;transform:scaleX(var(--scroll-progress,0))}
+.site-header nav a{position:relative;padding:6px 0;transition:color .2s}
+.site-header nav a::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:0 50%;transition:transform .25s}
+.site-header nav a:hover,.site-header nav a.is-current{color:var(--accent)}
+.site-header nav a:hover::after,.site-header nav a.is-current::after{transform:scaleX(1)}
+
+.work-filters{gap:8px}
+.work-filters button{border:1px solid #e6dfda;border-radius:30px;padding:8px 16px;transition:background .2s,color .2s,border-color .2s}
+.work-filters button:hover{border-color:var(--accent);color:var(--accent)}
+.work-filters button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* A slow band of words between the work and what comes next. */
+.ticker{overflow:hidden;margin:70px 0 0;padding:26px 0;border-top:1px solid #e4dfda;box-shadow:0 0 0 100vmax #fff;clip-path:inset(0 -100vmax)}
+.ticker>div{display:flex;width:max-content;animation:ticker-move 38s linear infinite}
+.ticker span{display:flex}
+.ticker i{font:italic clamp(26px,3.4vw,52px) Georgia,serif;letter-spacing:-.02em;white-space:nowrap;padding-right:.9em;color:#151513}
+.ticker i::after{content:"✦";font-style:normal;font-size:.45em;color:var(--accent);margin-left:1.9em;vertical-align:.35em}
+.ticker i:nth-child(even){color:transparent;-webkit-text-stroke:1px #151513}
+@keyframes ticker-move{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.ticker>div{animation:none}}
+
+/* Still in the making: a warm ivory band, full width. */
+.making-section{border-top:0;background:#faf6f0;box-shadow:0 0 0 100vmax #faf6f0;clip-path:inset(0 -100vmax);align-items:end}
+.making-section>div{font-size:16px;padding-bottom:42px}
+
+/* Beyond work: heading on the left, the threads on the right. */
+.beyond-section{border-top:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);column-gap:8%;align-items:start}
+.beyond-section>.section-kicker{grid-column:1/-1}
+.beyond-section h2{font-size:clamp(56px,6.4vw,112px);grid-column:1;margin-bottom:28px}
+.beyond-section>p:not(.section-kicker){grid-column:1;margin:0}
+.beyond-section .experience-archive{grid-column:2;grid-row:2/4;margin-top:22px;max-width:none}
+.experience-archive summary{padding:14px 12px;margin:0 -12px;border-radius:8px;transition:background .2s,color .2s}
+.experience-archive summary:hover{background:#b1261e08;color:var(--accent)}
+.experience-archive summary span{transition:transform .25s}
+
+/* About: name on the left, the short version on the right. */
+.about-section{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);column-gap:8%;align-items:start;padding-bottom:0}
+.about-section>.section-kicker{grid-column:1/-1}
+.about-section h2{grid-column:1;grid-row:2/4;margin:0 0 70px;font-size:clamp(52px,7vw,108px);letter-spacing:-.03em;line-height:1}
+.about-section>p:not(.section-kicker){grid-column:2;font-size:18px;line-height:1.75;margin:10px 0 0;max-width:560px}
+.about-section>.bio-label{margin-top:22px!important;margin-bottom:70px!important;display:inline-block;justify-self:start;border:1px solid #eadedb;border-radius:30px;padding:7px 14px;letter-spacing:.3px}
+
+/* Contact: the doghouse red closes the page. */
+.contact-section{grid-column:1/-1;background:var(--accent);box-shadow:0 0 0 100vmax var(--accent);clip-path:inset(0 -100vmax);color:#fff;padding:110px 0 80px;margin-top:20px}
+.contact-section .section-kicker{color:#ffd9d2}
+.contact-section>a:first-of-type{color:#fff;font-size:clamp(44px,9vw,150px);line-height:.95;letter-spacing:-.045em;transition:letter-spacing .4s}
+.contact-section>a:first-of-type:hover{letter-spacing:-.03em}
+.contact-section>p{display:flex;flex-wrap:wrap;gap:12px;margin:46px 0 0}
+.contact-section .text-action{color:#fff;border:1px solid #ffffff80;border-radius:30px;padding:12px 20px;margin:0;font-size:13px;transition:background .2s,color .2s}
+.contact-section .text-action:hover{background:#fff;color:var(--accent)}
+.contact-section .back-top{color:#ffe3de;margin-top:54px}
+.contact-section a:focus-visible{outline-color:#fff}
+footer{border-top:0}
+
+@media(max-width:900px){
+ .beyond-section,.about-section{display:block}
+ .about-section h2{margin-bottom:26px}
+ .about-section>.bio-label{margin-bottom:50px!important}
+ .beyond-section .experience-archive{margin-top:45px}
+ .contact-section{padding:75px 0 60px}
+ .ticker{margin-top:40px;padding:18px 0}
+}
