@@ -17,7 +17,7 @@ import {tailWag} from './snoopyArticulation';
 import {createAgent,decide,tickDrives,settle,rememberVisit} from './snoopyAgent';
 import {planRoutine,sampleRoutine,jumpPhase,JUMP_LAND} from './snoopyRoutines';
 // Real page surfaces Snoopy may stand on. His feet rest on their top edge.
-const TERRAIN='.canvas .object,.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.making-section p,.beyond-section>p,.about-section>p,.contact-section>a:first-of-type';
+const TERRAIN='.canvas .object,.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.making-section p,.beyond-section>p,.about-section>p,.contact-section>a:first-of-type,.footer-word';
 const DOCK_REST=10000;
 const terrainIds=new WeakMap();let terrainCount=0;
 const terrainId=element=>{if(!terrainIds.has(element))terrainIds.set(element,`surface-${++terrainCount}`);return terrainIds.get(element);};
