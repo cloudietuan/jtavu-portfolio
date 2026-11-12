@@ -288,3 +288,29 @@ test('a falling Snoopy is caught by a surface the page scrolls up into him',()=>
  for(let i=0;i<40&&!landed;i++){surfaceY-=30;const [pl]=buildPlatforms([node('rising',100,surfaceY,500)],world);s=flingStep(s,1/60,{...world,platforms:pl?[pl]:[]});landed=s.landed;}
  assert.notEqual(landed?.id,'rising');
 });
+
+import {SLIDE_MAX} from '../src/snoopyTerrain.js';
+
+test('sliding is a controlled descent that still lands on surfaces',()=>{
+ const platforms=buildPlatforms([node('low',100,700,700)],world);
+ let s={x:300,y:150,vx:200,vy:0,slide:true},maxV=0,frames=0;
+ while(!s.landed&&frames<600){s=flingStep(s,1/60,{...world,platforms});maxV=Math.max(maxV,s.vy);frames++;}
+ assert.equal(s.landed.id,'low');
+ assert.ok(maxV<=SLIDE_MAX,'friction caps the speed');
+ assert.equal(s.slide,true);
+ // Slower than a free fall over the same drop.
+ let f={x:300,y:150,vx:0,vy:0},fallFrames=0;
+ while(!f.landed&&fallFrames<600){f=flingStep(f,1/60,{...world,platforms});fallFrames++;}
+ assert.ok(frames>fallFrames);
+ // Sideways drift fades instead of carrying him into a wall.
+ let d={x:300,y:150,vx:600,vy:0,slide:true};
+ for(let i=0;i<60;i++)d=flingStep(d,1/60,{...world,platforms:[]});
+ assert.ok(Math.abs(d.vx)<100);
+ // At the bottom of the screen a slide just stops; it never bounces.
+ let b={x:300,y:780,vx:0,vy:900,slide:true};b=flingStep(b,1/60,{...world,platforms:[]});
+ assert.equal(b.landed,null);assert.equal(b.atFloor,true);assert.equal(b.y,world.height-6);assert.equal(b.bounces||0,0);
+ // Waiting at the bottom while the page scrolls, a surface rising into him scoops him up.
+ let caught=null,surfaceY=900;
+ for(let i=0;i<30&&!caught;i++){surfaceY-=40;const pl=buildPlatforms([node('rising',100,surfaceY,600)],world);b=flingStep(b,1/60,{...world,platforms:pl,shift:40});caught=b.landed;}
+ assert.equal(caught?.id,'rising');
+});

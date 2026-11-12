@@ -80,30 +80,38 @@ export function jumpDuration(start,end){
 // Ballistic flight after a throw, a drop, or stepping off an edge. He lands on
 // the first surface he falls through, bounces off the screen sides, bonks the
 // header, and settles on the bottom of the viewport if nothing catches him.
-export const GRAVITY=2200;
+export const GRAVITY=2200,SLIDE_MAX=950;
 // `shift` is how far the page scrolled this frame: surfaces moved up by that
 // much, so his previous height is compared in the page's own frame.
 export function flingStep(state,dt,{width,height,size,top=0,platforms=[],shift=0}){
  const step=clamp(Number.isFinite(dt)?dt:0,0,.05),edge=size/2+4;
  let {x,y,vx,vy,bounces=0,spin=0}=state;const prevY=y-(Number.isFinite(shift)?shift:0);
- vy+=GRAVITY*step;x+=vx*step;y+=vy*step;
- spin+=vx*step*.9;
+ if(state.slide){
+  // Sliding: friction caps his speed and his sideways drift fades, like a slide.
+  vy=Math.min(SLIDE_MAX,vy+GRAVITY*.55*step);vx*=Math.exp(-step*2.2);
+ }else vy+=GRAVITY*step;
+ x+=vx*step;y+=vy*step;
+ spin+=state.slide?0:vx*step*.9;
  if(x<edge){x=edge;vx=Math.abs(vx)*.55;}
  if(x>width-edge){x=width-edge;vx=-Math.abs(vx)*.55;}
  if(y-size<top){y=top+size;vy=Math.abs(vy)*.25;}
- if(vy>0){
+ // While the page scrolls down, surfaces rise into him even when he is not falling.
+ if(vy>0||shift>0){
   const hit=platforms
    .filter(p=>prevY<=p.y+1&&y>=p.y&&x>=p.minX-size*.25&&x<=p.maxX+size*.25)
    .sort((a,b)=>a.y-b.y)[0];
-  if(hit)return {x:clamp(x,hit.minX,hit.maxX),y:hit.y,vx,vy,bounces,spin,landed:hit};
+  if(hit)return {...state,x:clamp(x,hit.minX,hit.maxX),y:hit.y,vx,vy,bounces,spin,landed:hit};
  }
  const floor=height-6;
  if(y>floor){
   y=floor;
-  if(vy>320&&bounces<2){vy=-vy*.42;vx*=.7;bounces++;}
-  else return {x,y,vx:0,vy:0,bounces,spin,landed:'floor'};
+  if(!state.slide&&vy>320&&bounces<2){vy=-vy*.42;vx*=.7;bounces++;}
+  // A slide that reaches the bottom of the screen waits there, still seated,
+  // for the next surface to scroll up and scoop him; the page decides when to give up.
+  else if(state.slide)return {...state,x,y,vx:vx*.5,vy:0,bounces,spin,atFloor:true,landed:null};
+  else return {...state,x,y,vx:0,vy:0,bounces,spin,landed:'floor'};
  }
- return {x,y,vx,vy,bounces,spin,landed:null};
+ return {...state,x,y,vx,vy,bounces,spin,landed:null};
 }
 
 /** A lower surface he could reach by stepping off one end of his current one. */

@@ -68,13 +68,23 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  }
  function leavePerch(){const r=resident.current;r.perch=null;r.jump=null;r.walkTo=null;r.routine=null;r.fling=null;r.next=null;r.offSince=0;plainPose();}
  // Thrown, dropped, or stepping off a ledge: real gravity until something catches him.
- function launch(vx,vy){
-  const r=resident.current;r.perch=null;r.jump=null;r.walkTo=null;r.routine=null;r.next=null;docked.current=false;
-  r.fling={x:pos.current.x,y:pos.current.y,vx,vy,bounces:0,spin:0,started:performance.now(),scrollY:window.scrollY};
+ function launch(vx,vy,{slide=false}={}){
+  const r=resident.current,now=performance.now(),fromEl=slide?r.perch?.element||null:null;r.perch=null;r.jump=null;r.walkTo=null;r.routine=null;r.next=null;docked.current=false;
+  // A slide starts with a quick plop onto his seat before he lets go.
+  // Already sliding a moment ago (caught mid-scroll), he keeps his seat and goes on.
+  const chained=slide&&now-(r.slideEnded||0)<450;
+  r.fling={x:pos.current.x,y:pos.current.y,vx,vy,bounces:0,spin:0,started:now,scrollY:window.scrollY,slide,fromEl,sitUntil:slide&&!chained?now+170:0};
+  if(slide&&!chained)showEmote(['whee','wheee!','♪'][Math.floor(Math.random()*3)]);
  }
- function scanTerrain(force=false){
+ function scanTerrain(force=false,light=false){
   const r=resident.current,now=performance.now();
   if(!force&&now-r.scannedAt<250)return r.platforms;
+  if(light){
+   // In flight only surface positions matter, and they move every frame while scrolling.
+   const header=document.querySelector('.site-header')?.getBoundingClientRect();r.headerBottom=header?Math.max(0,header.bottom):0;
+   const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>{const b=element.getBoundingClientRect();return {element,id:terrainId(element),rect:{left:b.left,right:b.right,top:b.top,bottom:b.bottom}};});
+   return r.platforms=buildPlatforms(nodes,{width:innerWidth,height:innerHeight,size,top:r.headerBottom});
+  }
   r.scannedAt=now;
   const header=document.querySelector('.site-header')?.getBoundingClientRect();
   r.headerBottom=header?Math.max(0,header.bottom):0;
@@ -103,21 +113,47 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
    leavePerch();docked.current=true;r.dockSince=now-DOCK_REST+1500;return false;
   }
   if(wanted.includes(choice.platform.id))r.prefer=null;
+  const below=choice.platform.y-pos.current.y,across=choice.x-pos.current.x;
+  if(r.perch&&below>90&&Math.abs(across)<320){
+   // Going down the page he slides; going up he still jumps.
+   launch(across*2.1,80,{slide:true});agent.current=rememberVisit(agent.current,choice.platform.id);return true;
+  }
   jumpTo(choice.platform,choice.x,now);agent.current=rememberVisit(agent.current,choice.platform.id);return true;
  }
  function residentStep(now,dt,frozen){
   const r=resident.current,edge=size/2+12;
   scanTerrain();
+  if(r.fling?.slide&&now<r.fling.sitUntil){
+   // Sitting down at the top of the slide; the page may still carry him.
+   const shift=window.scrollY-(r.fling.scrollY??window.scrollY);r.fling.scrollY=window.scrollY;r.fling.y-=shift;
+   pos.current={x:r.fling.x,y:r.fling.y};target.current={...pos.current};velocity.current={x:0,y:0};
+   const k=1-(r.fling.sitUntil-now)/170,facing=Math.abs(r.fling.vx)>20?Math.sign(r.fling.vx):facingNow();
+   showPose({walking:false,kind:'wake',frame:k<.5?9:12,facing,transform:motionTransform(0,0,[1+.06*Math.sin(k*Math.PI),1-.1*Math.sin(k*Math.PI)],facing)});
+   return;
+  }
   if(r.fling){
    const shift=window.scrollY-(r.fling.scrollY??window.scrollY);r.fling.scrollY=window.scrollY;
-   const f=flingStep(r.fling,dt,{width:innerWidth,height:innerHeight,size,top:r.headerBottom,platforms:r.platforms,shift});
+   if(shift)scanTerrain(true,true);
+   // A slide never lands back on the surface it started from.
+   const fromEl=r.fling.fromEl,platforms=fromEl?r.platforms.filter(q=>q.element!==fromEl):r.platforms;
+   const f=flingStep(r.fling,dt,{width:innerWidth,height:innerHeight,size,top:r.headerBottom,platforms,shift});
    pos.current={x:f.x,y:f.y};target.current={...pos.current};velocity.current={x:0,y:0};
    const speed=Math.hypot(f.vx,f.vy),facing=Math.abs(f.vx)>30?Math.sign(f.vx):facingNow();
    // Fast throws tumble; slow falls stay upright with arms up.
-   const tumble=speed>900?f.spin:Math.max(-12,Math.min(12,f.vx*.02));
-   showPose({walking:false,kind:'action',action:'swing',frame:2,facing,transform:motionTransform(tumble,0,[1-.04*Math.min(1,speed/1500),1+.06*Math.min(1,speed/1500)],1)});
+   if(r.fling.slide){
+    // On his seat, leaning back into the slide, with a little rattle at speed.
+    const k=Math.min(1,speed/700),rattle=Math.sin(now/38)*1.6*k;
+    showPose({walking:false,kind:'wake',frame:12,facing,transform:motionTransform(-(8+10*k)+rattle,0,[1+.03*k,1-.04*k],facing)});
+   }else{
+    const tumble=speed>900?f.spin:Math.max(-12,Math.min(12,f.vx*.02));
+    showPose({walking:false,kind:'action',action:'swing',frame:2,facing,transform:motionTransform(tumble,0,[1-.04*Math.min(1,speed/1500),1+.06*Math.min(1,speed/1500)],1)});
+   }
+   if(!f.landed&&f.atFloor&&r.fling.slide&&now-lastScrollAt.current>350){
+    // The page stopped with him waiting at the bottom: he hops back up onto something.
+    r.fling=null;r.slideEnded=now;plainPose();relocate(now,{nearby:true});return;
+   }
    if(!f.landed){r.fling={...r.fling,...f};return;}
-   const impact=Math.abs(r.fling.vy);r.fling=null;
+   const impact=Math.abs(r.fling.vy),slid=r.fling.slide;r.fling=null;if(slid)r.slideEnded=now;
    if(f.landed==='floor'){
     showEmote(impact>900?'oof':'!');plainPose();
     // Still scrolling: rest in the corner and come back once the page is quiet.
@@ -125,8 +161,11 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     relocate(now,{nearby:true});return;
    }
    const pl=f.landed;r.perch={element:pl.element,id:pl.id,fx:f.x-pl.left};
-   r.routine={plan:{name:'land',duration:JUMP_LAND+60,steps:[{start:0,ms:JUMP_LAND+60,pose:{kind:'action',action:'portal'},squash:[1.14,.82]}]},started:now,facing};
-   if(impact>1100)showEmote('oof');
+   r.routine=slid
+    // A slide ends sitting, with a bump, before he stands back up.
+    ?{plan:{name:'land',duration:520,steps:[{start:0,ms:200,pose:{kind:'wake',frame:12},squash:[1.1,.86]},{start:200,ms:200,pose:{kind:'wake',frame:15}},{start:400,ms:120,pose:{kind:'wake',frame:9}}]},started:now,facing}
+    :{plan:{name:'land',duration:JUMP_LAND+60,steps:[{start:0,ms:JUMP_LAND+60,pose:{kind:'action',action:'portal'},squash:[1.14,.82]}]},started:now,facing};
+   if(impact>1100&&!slid)showEmote('oof');
    agent.current=rememberVisit(agent.current,pl.id);
    return;
   }
@@ -173,12 +212,12 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     }
     const scrolling=now-lastScrollAt.current<180;
     if(scrolling&&!off){
-     const top=r.headerBottom,leavingTop=r.scrollDir>0&&b.top-size<top+size*.7,leavingBottom=r.scrollDir<0&&b.top>innerHeight-size*.5;
+     const top=r.headerBottom,leavingTop=r.scrollDir>0&&b.top-size<top+size*1.6,leavingBottom=r.scrollDir<0&&b.top>innerHeight-size*.5;
      if(leavingTop&&now-r.scrollHopAt>300){
       // Scrolling down: he steps off as his surface rises and falls down the
       // screen until the page carries the next surface up to catch him.
-      r.scrollHopAt=now;showEmote(Math.random()<.5?'!':'whee');
-      launch(facingNow()*(60+Math.random()*80),-260);return;
+      r.scrollHopAt=now;
+      launch(facingNow()*(40+Math.random()*60),220,{slide:true});return;
      }
      if(leavingBottom&&now-r.scrollHopAt>450){
       // Scrolling up: hop to a surface further up the screen.
@@ -204,6 +243,12 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     if(off){
      // Once his surface scrolls away he hops to one the visitor can see.
      if(now-lastScrollAt.current>160)relocate(now,{mustLeave:true});
+     else if(r.scrollDir>0){
+      // A fast wheel can carry his surface past the top in one jump: he is
+      // scooped off the top edge and slides down the screen instead.
+      r.scrollHopAt=now;pos.current={x,y:Math.max(r.headerBottom+size,Math.min(b.top,innerHeight-size))};
+      launch(facingNow()*(40+Math.random()*60),260,{slide:true});
+     }
      else if(now-r.offSince>300){leavePerch();docked.current=true;r.dockSince=now-DOCK_REST+300;}
      return;
     }
@@ -232,7 +277,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
      if(sample.done){
       r.emoteIndex=-1;endRoutine(now);if(R.plan.name==='land')react('land',650);
       // After peeking over a ledge he hops off it.
-      if(r.next?.type==='drop'){const side=r.next.side;r.next=null;showEmote('!');launch(side*190,-420);}
+      if(r.next?.type==='drop'){const side=r.next.side;r.next=null;if(Math.random()<.5)launch(side*190,60,{slide:true});else{showEmote('!');launch(side*190,-420);}}
      }
     }else{
      const c=cursor.current,fresh=now-c.at<4000&&Math.abs(c.x-x)<420&&Math.sign(c.x-x||1)===facingNow();
@@ -417,7 +462,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
    }
    pos.current=result.position;velocity.current=result.velocity;distance.current+=result.travelled;const facing=Math.abs(result.velocity.x)>5?Math.sign(result.velocity.x):null;const frame=Math.floor(distance.current/14)%8;setPose(old=>{const next={walking:result.moving,frame:result.moving?frame:2,facing:facing||old.facing};return old.walking===next.walking&&old.frame===next.frame&&old.facing===next.facing?old:next});
   }
-  const side=pos.current.x>innerWidth-180?'right':pos.current.x<140?'left':'center';const panelHeight=body.current?.querySelector('.companion-menu')?.offsetHeight||300;const aboveRoom=pos.current.y-size-12,belowRoom=innerHeight-pos.current.y-12;const below=aboveRoom<panelHeight&&belowRoom>aboveRoom;if(body.current)body.current.style.setProperty('--snoopy-panel-max-height',`${Math.max(80,below?belowRoom:aboveRoom)}px`);setPlacement(old=>old.side===side&&old.below===below?old:{side,below});const presence=resolvePresence({point:pos.current,width:innerWidth,height:innerHeight,size,obstacles:obstacles(),docked:docked.current,passing:returning?.stage==='passing',dragging:!!drag.current,performing:!!toolAction.current&&toolAction.current.stage!=='approach'||scrollReturn.current?.stage==='pop'||residentActive||living&&!!(action||toolAction.current)});if(presence.docked){pos.current=presence.point;target.current={...pos.current};velocity.current={x:0,y:0};}docked.current=presence.docked;if(body.current){body.current.dataset.surface=r.jump?'jump':r.perch?'perch':presence.docked?'dock':'air';body.current.dataset.docked=String(presence.docked);body.current.style.transform=`translate(${pos.current.x-size/2}px,${pos.current.y-size}px)`;body.current.style.visibility=presence.visible?'visible':'hidden';}
+  const side=pos.current.x>innerWidth-180?'right':pos.current.x<140?'left':'center';const panelHeight=body.current?.querySelector('.companion-menu')?.offsetHeight||300;const aboveRoom=pos.current.y-size-12,belowRoom=innerHeight-pos.current.y-12;const below=aboveRoom<panelHeight&&belowRoom>aboveRoom;if(body.current)body.current.style.setProperty('--snoopy-panel-max-height',`${Math.max(80,below?belowRoom:aboveRoom)}px`);setPlacement(old=>old.side===side&&old.below===below?old:{side,below});const presence=resolvePresence({point:pos.current,width:innerWidth,height:innerHeight,size,obstacles:obstacles(),docked:docked.current,passing:returning?.stage==='passing',dragging:!!drag.current,performing:!!toolAction.current&&toolAction.current.stage!=='approach'||scrollReturn.current?.stage==='pop'||residentActive||living&&!!(action||toolAction.current)});if(presence.docked){pos.current=presence.point;target.current={...pos.current};velocity.current={x:0,y:0};}docked.current=presence.docked;if(body.current){body.current.dataset.surface=r.fling?.slide?'slide':r.fling?'fling':r.jump?'jump':r.perch?'perch':presence.docked?'dock':'air';body.current.dataset.docked=String(presence.docked);body.current.style.transform=`translate(${pos.current.x-size/2}px,${pos.current.y-size}px)`;body.current.style.visibility=presence.visible?'visible':'hidden';}
   if(now-speechCheck.current>150){speechCheck.current=now;const bubble=body.current?.querySelector('.companion-speech');if(bubble){const b=bubble.getBoundingClientRect();bubble.style.visibility=obstacles().some(o=>b.left<o.right+4&&b.right>o.left-4&&b.top<o.bottom+4&&b.bottom>o.top-4)?'hidden':'visible';}}
   id=requestAnimationFrame(tick);
  };id=requestAnimationFrame(tick);return()=>cancelAnimationFrame(id)},[active,roam,sleep,menu,size,reduced,living]);
@@ -488,7 +533,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  {petting&&<span className="snoopy-affection" aria-hidden="true"><i>♥</i><i>♥</i><i>♥</i></span>}
  <span className="snoopy-dock-label" aria-hidden="true">Snoopy · drag me</span>
  {sleep&&<span className="companion-sleep-mark" aria-hidden="true">Z z</span>}
- {emote&&<span key={emote.key} className="snoopy-emote" aria-hidden="true">{emote.symbol}</span>}{speech&&!menu&&!scrollReturn.current&&toolView.tool!=='swing'&&<p className="companion-speech" aria-live="polite">{speech}</p>}
+ <span className="snoopy-slide-trail" aria-hidden="true"/>{emote&&<span key={emote.key} className="snoopy-emote" aria-hidden="true">{emote.symbol}</span>}{speech&&!menu&&!scrollReturn.current&&toolView.tool!=='swing'&&<p className="companion-speech" aria-live="polite">{speech}</p>}
  <button className="companion-character" aria-label={sleep?'Wake Snoopy companion':'Interact with Snoopy'} aria-expanded={menu} aria-controls="snoopy-menu" title="Drag Snoopy to move him. Click for his controls." onDragStart={e=>e.preventDefault()} onPointerDown={e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();leavePerch();stopAction(true);docked.current=false;target.current={...pos.current};velocity.current={x:0,y:0};e.currentTarget.setPointerCapture(e.pointerId);drag.current={x:e.clientX,y:e.clientY,ox:pos.current.x,oy:pos.current.y,moved:false};}} onPointerMove={e=>{const d=drag.current;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(Math.hypot(dx,dy)>5)d.moved=true;d.samples=[...(d.samples||[]),{x:e.clientX,y:e.clientY,t:performance.now()}].slice(-6);if(d.moved){body.current?.style.setProperty('--pickup-lean',`${Math.max(-14,Math.min(14,dx*.12))}deg`);setDragging(true);setMenu(false);menuOpen.current=false;setSleep(false);setSpeech('');pos.current=clampPoint({x:d.ox+dx,y:d.oy+dy},innerWidth,innerHeight,size);target.current={...pos.current};velocity.current={x:0,y:0};setPose({walking:false,frame:2,facing:dx<0?-1:1});}}} onPointerUp={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);const d=drag.current;drag.current=null;setDragging(false);if(d?.moved){if(!living){react('land',650);pos.current=safePoint(pos.current.x,pos.current.y);}target.current={...pos.current};velocity.current={x:0,y:0};
  if(living){
   // Release speed comes from the last ~100 ms of the drag, so a flick throws him.

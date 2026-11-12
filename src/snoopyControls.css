@@ -53,3 +53,9 @@ body footer{padding-bottom:128px}
 .snoopy-companion[data-docked=true]{background:none;box-shadow:none;border-radius:0}
 .snoopy-companion[data-docked=true]::after{content:"";position:absolute;left:22%;right:22%;bottom:-3px;height:7px;border-radius:50%;background:#2a1d1414;filter:blur(1.5px);pointer-events:none}
 .snoopy-companion[data-docked=true] .snoopy-dock-label{display:none}
+
+/* Speed lines streaming above him while he slides down the page. */
+.snoopy-slide-trail{position:absolute;left:24%;right:24%;bottom:58%;height:0;opacity:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 5px,#b1261e55 5px 7px,transparent 7px 14px);-webkit-mask:linear-gradient(transparent,#000 70%);mask:linear-gradient(transparent,#000 70%);transition:opacity .15s,height .15s}
+.snoopy-companion[data-surface=slide] .snoopy-slide-trail{opacity:1;height:70%;animation:snoopy-slide-lines .18s linear infinite}
+@keyframes snoopy-slide-lines{from{background-position:0 0}to{background-position:14px 0}}
+@media(prefers-reduced-motion:reduce){.snoopy-slide-trail{display:none}}
