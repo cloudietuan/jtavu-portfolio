@@ -1,4 +1,3 @@
-import { SnoopySprite } from './SnoopySprite';
 
 // Two-unit steps keep the house silhouette closer to the character's pixels.
 function roofPolygon(peakY, baseY, halfWidth) {
@@ -30,7 +29,9 @@ function MatLettering() {
   )}</g>;
 }
 
-export function DoghouseLetter({ occupied = false, waking = false, frame = 0, grid = 384 }) {
+// Snoopy is drawn by the one shared sprite in front of the house (App), so he
+// looks identical asleep, waking and standing.
+export function DoghouseLetter() {
   return <svg className="doghouse-letter" viewBox="0 0 100 108" preserveAspectRatio="none" aria-hidden="true" shapeRendering="crispEdges">
     <path fill="var(--ink,#0b0b0b)" d={roofPolygon(0,70,50)}/>
     <path fill="var(--ink,#0b0b0b)" d="M18 62h64v46H18Z"/>
@@ -56,7 +57,5 @@ export function DoghouseLetter({ occupied = false, waking = false, frame = 0, gr
       <path fill="#bf9c70" d="M32 104h36v1H32ZM22 114h56v1H22Z"/>
       <MatLettering/>
     </g>
-    {occupied && !waking && <image href="/assets/snoopy-sleep-door.png" x="32" y="77" width="36" height="24" preserveAspectRatio="xMidYMid meet" style={{imageRendering:"pixelated"}}/>}
-    {waking && <foreignObject x="20" y="40" width="60" height="60"><SnoopySprite frame={frame} grid={grid}/></foreignObject>}
   </svg>;
 }

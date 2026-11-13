@@ -179,3 +179,7 @@ html.fx-cursor-text .cursor-pixel{opacity:0}
 @keyframes cursor-nudge{0%,100%{transform:rotate(-14deg) scale(1.08)}50%{transform:rotate(-14deg) scale(1.08) translate(-2px,-2px)}}
 @keyframes cursor-wiggle{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
 @media(prefers-reduced-motion:reduce){html.fx-cursor,html.fx-cursor *{cursor:auto!important}.cursor-pixel,.cursor-trail{display:none}}
+/* Speed lines while Snoopy zooms in the blind stunt. */
+.blind-snoopy::before{content:"";position:absolute;top:30%;height:44%;width:70%;opacity:0;pointer-events:none;background:repeating-linear-gradient(to bottom,var(--ink,#141414) 0 3px,transparent 3px 11px);transition:opacity .12s}
+.blind-snoopy[data-zoom=right]::before{right:88%;opacity:.55;-webkit-mask:linear-gradient(to right,transparent,#000);mask:linear-gradient(to right,transparent,#000)}
+.blind-snoopy[data-zoom=left]::before{left:88%;opacity:.55;-webkit-mask:linear-gradient(to left,transparent,#000);mask:linear-gradient(to left,transparent,#000)}

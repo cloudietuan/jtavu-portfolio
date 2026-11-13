@@ -2,6 +2,11 @@
 // tilts at the collar and the tail wags from its root. Only existing pixels are
 // moved; nothing is redrawn. Coordinates are in that frame's own pixels.
 export const HEAD_BAND=212;
+// The ear hangs below the collar line on the left. The cut steps down around
+// it so the whole ear travels with the head (otherwise its tip stays behind
+// on the body when he nods). Nothing but ear lives in that pocket.
+export const EAR_POCKET=Object.freeze({right:106,bottom:230});
+const HEAD_OUTLINE=(w,pad=0)=>[[0,0],[w,0],[w,HEAD_BAND+pad],[EAR_POCKET.right+14,HEAD_BAND+pad],[EAR_POCKET.right,EAR_POCKET.bottom+pad],[0,EAR_POCKET.bottom+pad]];
 export const NECK=Object.freeze({x:150,y:208});
 export const TAIL_ROOT=Object.freeze({x:100,y:318});
 export const TAIL_SHAPE=Object.freeze([[44,290],[52,281],[72,281],[84,296],[98,302],[106,316],[103,332],[92,343],[70,344],[52,332],[43,316]]);
@@ -21,12 +26,13 @@ export function drawArticulated(ctx,texture,f,joints){
  const {head,tail}=clampJoints(joints),r=Math.PI/180;
  const all=()=>ctx.drawImage(texture,f.x,f.y,f.w,f.h,0,0,f.w,f.h);
  // Body: everything below the head band, minus the tail.
- ctx.save();ctx.beginPath();ctx.rect(0,HEAD_BAND,f.w,f.h-HEAD_BAND);
+ const body=[[0,EAR_POCKET.bottom],[EAR_POCKET.right,EAR_POCKET.bottom],[EAR_POCKET.right+14,HEAD_BAND],[f.w,HEAD_BAND],[f.w,f.h],[0,f.h]];
+ ctx.save();ctx.beginPath();body.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();
  TAIL_SHAPE.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();
  ctx.clip('evenodd');all();ctx.restore();
  // Tail swings from its root; an unrotated root patch hides the seam.
  ctx.save();ctx.translate(TAIL_ROOT.x,TAIL_ROOT.y);ctx.rotate(tail*r);ctx.translate(-TAIL_ROOT.x,-TAIL_ROOT.y);tailPath(ctx);ctx.clip();all();ctx.restore();
  ctx.save();tailPath(ctx);ctx.clip();ctx.beginPath();ctx.arc(TAIL_ROOT.x,TAIL_ROOT.y,9,0,Math.PI*2);ctx.clip();all();ctx.restore();
  // Head tilts at the collar and overlaps it slightly, so no gap opens.
- ctx.save();ctx.translate(NECK.x,NECK.y);ctx.rotate(head*r);ctx.translate(-NECK.x,-NECK.y);ctx.beginPath();ctx.rect(0,0,f.w,HEAD_BAND+4);ctx.clip();all();ctx.restore();
+ ctx.save();ctx.translate(NECK.x,NECK.y);ctx.rotate(head*r);ctx.translate(-NECK.x,-NECK.y);ctx.beginPath();HEAD_OUTLINE(f.w,4).forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath();ctx.clip();all();ctx.restore();
 }

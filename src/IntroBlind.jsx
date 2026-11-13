@@ -1,3 +1,4 @@
+import {snoopySize} from './snoopySize.js';
 import {useEffect,useRef,useState} from 'react';
 import {SnoopySprite} from './SnoopySprite';
 import {chooseVariant,planSwing} from './introSwing';
@@ -57,7 +58,9 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
   raising.current=true;onRaiseStart?.();setSwinging(true);el.classList.add('is-raising');
   let last;try{last=sessionStorage.getItem('jtavu-blind-stunt')}catch{}
   const name=chooseVariant(last);try{sessionStorage.setItem('jtavu-blind-stunt',name)}catch{}
-  const view={width:innerWidth,height:innerHeight,size:innerWidth<700?80:96},plan=planSwing(name,view),fly=620;
+  // He starts from exactly where he stands on the landing screen.
+  let start=null;try{const f=frameRef?.current,d=f?.contentDocument,r=d?.querySelector('.snoopy')?.getBoundingClientRect(),o=f.getBoundingClientRect();if(r?.width)start={x:o.left+r.left+r.width/2,y:o.top+r.bottom};}catch{}
+  const view={width:innerWidth,height:innerHeight,size:snoopySize(innerWidth),start},plan=planSwing(name,view),fly=620;
   const t0=performance.now();
   let prevT=t0,fall=null,flyEnd=0,said=null,poseKey='';
   const show=(pose,facing)=>{const key=`${pose.kind}|${pose.frame}|${pose.action}|${facing}`;if(key!==poseKey){poseKey=key;setKidPose({...pose,facing});}};
@@ -75,6 +78,7 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
     el.style.transform=`translateY(${p.blindY.toFixed(1)}px)`;
     if(kid.current)kid.current.style.opacity=p.visible?'1':'0';
     if(p.visible){show(p.pose,p.facing||1);place(p.anchor,p.x,p.y,p.rot,p.squash);}
+    if(kid.current)kid.current.dataset.zoom=p.zoom>0?'right':p.zoom<0?'left':'';
     if(tab.current)tab.current.style.transform=p.tabRot?`rotate(${p.tabRot.toFixed(1)}deg)`:'';
     if(p.say&&p.say!==said){said=p.say;say(p.say);}
     if(t>=plan.releaseAt){
@@ -83,7 +87,7 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
      fall={x:p.x,y:p.y,vx:r.vx,vy:r.vy,rot:p.rot,spin:r.spin};
      el.style.transform='';if(tab.current)tab.current.style.transform='';
      el.animate([{transform:`translateY(${p.blindY}px)`},{transform:`translateY(${p.blindY+16}px)`,offset:.1},{transform:'translateY(-104%)'}],{duration:fly,easing:'cubic-bezier(.6,0,.85,.35)',fill:'forwards'});
-     flyEnd=now+fly;say(r.say);show({kind:'action',action:'swing'},Math.sign(r.vx)||1);
+     flyEnd=now+fly;say(r.say);if(kid.current)kid.current.dataset.zoom='';show({kind:'action',action:'swing'},Math.sign(r.vx)||1);
     }
    }else{
     fall.vy+=2200*dt;fall.x+=fall.vx*dt;fall.y+=fall.vy*dt;fall.rot+=fall.spin*dt;
@@ -126,6 +130,6 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
    <span ref={tab} className="intro-blind-tab"/>
   </button>
  </div>
- {swinging&&<div ref={kid}  className="blind-snoopy" data-stunt={stunt} aria-hidden="true" style={{opacity:0}}><SnoopySprite frame={kidPose.frame??2} walking={kidPose.kind==='walk'} standing={kidPose.kind!=='walk'} action={kidPose.kind==='action'?kidPose.action:undefined} facing={kidPose.facing||1}/><span ref={bubble} className="blind-snoopy-bubble"/></div>}
+ {swinging&&<div ref={kid}  className="blind-snoopy" data-stunt={stunt} aria-hidden="true" style={{opacity:0,width:snoopySize(innerWidth),height:snoopySize(innerWidth)}}><SnoopySprite frame={kidPose.frame??2} walking={kidPose.kind==='walk'} standing={kidPose.kind!=='walk'} action={kidPose.kind==='action'?kidPose.action:undefined} facing={kidPose.facing||1}/><span ref={bubble} className="blind-snoopy-bubble"/></div>}
  </>;
 }

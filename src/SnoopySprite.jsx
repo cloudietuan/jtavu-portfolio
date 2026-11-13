@@ -11,6 +11,15 @@ const DEFAULT_GRID = 384;
 // grid with one palette, so walking, sitting and action poses match exactly.
 // This only re-samples the existing artwork; nothing is redrawn.
 export const PIXEL_GRID = 96;
+// Sleeping and waking use the wake sheet's own frames (the same style as
+// standing), scaled so his head matches the walk sheet, with feet planted.
+export const WAKE_SCALE = 1.1;
+const WAKE_GROUND = [16.3, 16.6, 18, 2.9, -1.6, -2.7, -8.7, -20.4, -18, -19.8, -27.2, -20.6, -13.2, -13.1, -14.7, -14.5];
+const WAKE_ORDER = [0, 1, 2, 5, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+export function wakeShift(frame) {
+  const i = Math.max(0, WAKE_ORDER.indexOf(frame));
+  return (17 - 31 * (i / (WAKE_ORDER.length - 1)) - WAKE_GROUND[frame]) * WAKE_SCALE;
+}
 export const PALETTE = [[20, 20, 20], [255, 252, 244], [215, 48, 31]];
 export function snapPixel(r, g, b, a) {
   if (a < 112) return [0, 0, 0, 0];
@@ -44,7 +53,7 @@ function loadTexture(name) {
     textures[name] = new Promise(resolve => {
       const image = new Image();
       image.onload = () => resolve(image);
-      image.src = name === 'actions' ? '/assets/snoopy-actions.png' : name === 'sleep' ? '/assets/snoopy-sleep-door.png' : `/assets/snoopy-${name === 'wake' ? 'wake-source' : 'walk'}.png`;
+      image.src = name === 'actions' ? '/assets/snoopy-actions.png' : `/assets/snoopy-${name === 'wake' ? 'wake-source' : 'walk'}.png`;
     });
   }
   return textures[name];
@@ -57,13 +66,13 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
   useEffect(() => {
     let cancelled = false;
     const actionFrame = actionFrames[action];
-    const name = action === 'bow' ? 'walk' : actionFrame ? 'actions' : walking || standing ? 'walk' : frame < 3 ? 'sleep' : 'wake';
+    const name = action === 'bow' ? 'walk' : actionFrame ? 'actions' : walking || standing ? 'walk' : 'wake';
     loadTexture('walk');
     loadTexture(name).then(texture => {
       if (cancelled || !canvas.current) return;
       const ctx = canvas.current.getContext('2d');
-      const f = actionFrame || (name === 'sleep' ? { x:0, y:0, w:texture.width, h:texture.height } : frames[name][walking ? frame : standing ? standingFrame : frame]);
-      const scale = actionFrame ? actionFrame.displayHeight / f.h : name === 'sleep' ? 230 / f.w : name === 'walk' ? 384 / f.sourceCell * .96 : 1;
+      const f = actionFrame || frames[name][walking ? frame : standing ? standingFrame : frame];
+      const scale = actionFrame ? actionFrame.displayHeight / f.h : name === 'walk' ? 384 / f.sourceCell * .96 : WAKE_SCALE;
       const width = f.w * scale, height = f.h * scale;
       ctx.clearRect(0, 0, GRID, GRID);
       ctx.save();
@@ -82,10 +91,9 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
         ctx.scale(scale * UNIT, scale * UNIT);
         drawBow(ctx, texture, f, actionProgress);
       } else ctx.drawImage(texture, f.x, f.y, f.w, f.h,
-        (384 - width) / 2 * UNIT, (376 - height - climbLift) * UNIT, width * UNIT, height * UNIT);
+        ((384 - width) / 2 + (name === 'wake' ? wakeShift(frame) : 0)) * UNIT, (376 - height - climbLift) * UNIT, width * UNIT, height * UNIT);
       ctx.restore();
-      // The sleeping doghouse art keeps its own colors; it is only re-gridded.
-      unifyPixels(ctx, GRID, name !== 'sleep');
+      unifyPixels(ctx, GRID, true);
     });
     return () => { cancelled = true; };
   }, [frame, walking, standing, facing, grid, action, actionProgress, standingFrame, head, tail]);

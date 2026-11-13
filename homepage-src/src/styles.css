@@ -37,3 +37,7 @@
 .intro.reveal{transform:none}
 /* He leaves the doghouse to go swing on the blind's pull tab. */
 .intro.reveal .snoopy{opacity:0;transition:opacity .22s ease .2s}
+/* One sprite for every state: never hidden while asleep or waking. */
+.intro .snoopy.sleeping{visibility:visible;opacity:1}
+.intro .snoopy.is-waking .sleep-z{display:none}
+.door-z{display:none}

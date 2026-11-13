@@ -1,3 +1,4 @@
+import {snoopySize} from './snoopySize.js';
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import './snoopyControls.css';
@@ -45,7 +46,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  const interactive=active;
  function speak(text){setSpeech(text);}
  function obstacles(force=false){const now=performance.now();if(force||now-obstacleCache.current.at>200){obstacleCache.current={at:now,rects:[...document.querySelectorAll('a,button,input,textarea,select,summary,dialog,h1,h2,h3,p')].filter(e=>!e.closest('.snoopy-companion,.snoopy-control-panel')).map(e=>e.getBoundingClientRect()).filter(b=>b.width&&b.height&&b.top<innerHeight&&b.bottom>0)};}return obstacleCache.current.rects;}
- function safePoint(x,y){return findSafePoint({x,y},innerWidth,innerHeight,innerWidth<700?80:96,obstacles());}
+ function safePoint(x,y){return findSafePoint({x,y},innerWidth,innerHeight,snoopySize(innerWidth),obstacles());}
  function cancelTool(reason='interrupted'){if(body.current&&toolAction.current)body.current.dataset.lastInterruption=reason;if(body.current)body.current.style.opacity='1';toolAction.current?.subject?.element?.classList.remove('snoopy-playing-ball');toolAction.current=null;body.current?.style.setProperty('--snoopy-swing-angle','0deg');setToolView(old=>old.tool?{tool:null,anchor:old.anchor,progress:0}:old);}
  function react(kind,duration=900){clearTimeout(reactionTimer.current);setReaction(kind);reactionTimer.current=setTimeout(()=>setReaction(''),duration);}
  function stopAction(preservePosition=true){clearTimeout(reactionTimer.current);clearTimeout(petTimer.current);setPetting(false);setReaction('');worldIntent.current=null;scrollReturn.current=null;cancelTool();setPose(old=>old.walking?{...old,walking:false,frame:2}:old);velocity.current={x:0,y:0};if(!preservePosition)pos.current=safePoint(pos.current.x,pos.current.y);target.current={...pos.current};}
@@ -331,7 +332,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
   stopAction();setFeedback('');
   if(!active||!roam||sleep||reduced||drag.current)return;
   docked.current=false;setMenu(false);menuOpen.current=false;velocity.current={x:0,y:0};
-  const s=innerWidth<700?80:96;
+  const s=snoopySize(innerWidth);
   let base=safePoint(pos.current.x,pos.current.y),end={...base},straight=false;
   if(kind==='ladder'||kind==='swing'){
    const project=[...document.querySelectorAll('.story-image,.index-project')].find(el=>{const b=el.getBoundingClientRect();return b.top<innerHeight*.7&&b.bottom>innerHeight*.2;});
@@ -380,7 +381,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  useEffect(()=>{if(!speech)return;const timer=setTimeout(()=>setSpeech(''),6500);return()=>clearTimeout(timer)},[speech,active]);
  useEffect(()=>{menuOpen.current=menu;if(menu){target.current={...pos.current};velocity.current={x:0,y:0};setPose(old=>({...old,walking:false,frame:2}));const focusTarget=panel.current?.querySelector('.snoopy-resume')||panel.current?.querySelector('button');focusTarget?.focus();}},[menu,paused,sleep]);
  useEffect(()=>{if(!menu)return;const escape=e=>{if(e.key==='Escape'&&!e.defaultPrevented){e.preventDefault();closeMenu();}};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[menu,roam,sleep,reduced]);
- useEffect(()=>{if(!active){leavePerch();stopAction();setMenu(false);setSpeech('');clearTimeout(petTimer.current);setPetting(false);drag.current=null;velocity.current={x:0,y:0};return;}const resize=()=>{stopAction();obstacles(true);setSize(innerWidth<700?80:96);target.current=safePoint(target.current.x,target.current.y);pos.current=safePoint(pos.current.x,pos.current.y)};resize();const hero=document.querySelector('.canvas');if(!initialized.current&&hero?.getBoundingClientRect().bottom>100){const letter=document.querySelector('.canvas h1');const b=letter?.getBoundingClientRect();const p=safePoint(innerWidth*.37,b?b.top+80:innerHeight*.5);pos.current={...p};target.current={...p};}initialized.current=true;userAt.current=performance.now();agent.current=createAgent(performance.now());
+ useEffect(()=>{if(!active){leavePerch();stopAction();setMenu(false);setSpeech('');clearTimeout(petTimer.current);setPetting(false);drag.current=null;velocity.current={x:0,y:0};return;}const resize=()=>{stopAction();obstacles(true);setSize(snoopySize(innerWidth));target.current=safePoint(target.current.x,target.current.y);pos.current=safePoint(pos.current.x,pos.current.y)};resize();const hero=document.querySelector('.canvas');if(!initialized.current&&hero?.getBoundingClientRect().bottom>100){const letter=document.querySelector('.canvas h1');const b=letter?.getBoundingClientRect();const p=safePoint(innerWidth*.37,b?b.top+80:innerHeight*.5);pos.current={...p};target.current={...p};}initialized.current=true;userAt.current=performance.now();agent.current=createAgent(performance.now());
  // Arriving from the intro mid-air: carry on from exactly where the swing let go.
  const landing=arrival?.current;if(landing){arrival.current=null;if(living){pos.current={x:landing.x,y:landing.y};target.current={...pos.current};docked.current=false;launch(landing.vx,landing.vy);}}if(!greeted.current&&roam&&!reduced){greeted.current=true;if(playfulRef.current){speak('Drag me around. I’ve made myself at home.');react('hello',1100);}}window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize)},[active]);
  // What he can sense: the pointer, a hovered project, and whether anyone is there.
