@@ -6,11 +6,11 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
 // Which routines suit his mood. Tired he settles down; rested he plays.
 export const MOODS=Object.freeze({
- tired:{lieDown:4,sit:3,lookAround:2,sniff:1,stretch:3},
- calm:{sit:3,lookAround:2,sniff:2,curious:3,happyWag:2,lieDown:1,playBow:1,nod:2,stretch:2,headShake:1},
+ tired:{lieDown:4,sit:3,lookAround:2,sniff:1,stretch:3,catNap:4},
+ calm:{sit:3,lookAround:2,sniff:2,curious:3,happyWag:2,lieDown:1,playBow:1,nod:2,stretch:2,headShake:1,catNap:1,doubleTake:1},
  // The default: a well-mannered host. He settles, watches and looks around.
- host:{sit:4,lieDown:3,lookAround:3,curious:3,happyWag:1,sniff:1,nod:2,stretch:2},
- playful:{cheer:3,playBow:3,chaseTail:2,happyWag:3,curious:2,sniff:1,lookAround:1,sit:1,dance:4,spin:3,nod:1,headShake:1,stretch:1},
+ host:{sit:4,lieDown:3,lookAround:3,curious:3,happyWag:1,sniff:1,nod:2,stretch:2,catNap:2},
+ playful:{cheer:3,playBow:3,chaseTail:2,happyWag:3,curious:2,sniff:1,lookAround:1,sit:1,dance:4,spin:3,nod:1,headShake:1,stretch:1,doubleTake:3},
 });
 export const moodFor=energy=>energy<.35?'tired':energy<.7?'calm':'playful';
 

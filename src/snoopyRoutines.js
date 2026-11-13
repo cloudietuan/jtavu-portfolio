@@ -36,6 +36,19 @@ const BUILDERS={
   steps.push({ms:200,pose:wake(POSES.playBow)},{ms:150,pose:wake(POSES.crouch)});
   return steps;
  },
+ // Lies down, eyes droop, dozes off for a moment, blinks awake and gets up.
+ // Uses the wake sheet's own sleeping frames, the same style as standing.
+ catNap(random){
+  const steps=[{ms:140,pose:wake(POSES.crouch)},{ms:180,pose:wake(POSES.playBow)},{ms:220,pose:wake(POSES.lieAlert)},{ms:between(random,500,800),pose:wake(POSES.lieLook)},
+   {ms:260,pose:wake(2)},{ms:260,pose:wake(1)},{ms:between(random,1400,2400),pose:wake(0),emote:'z'},{ms:220,pose:wake(1)},{ms:160,pose:wake(0)},{ms:240,pose:wake(1)},{ms:280,pose:wake(2),emote:'!'},
+   {ms:180,pose:wake(POSES.lieAlert)},{ms:160,pose:wake(POSES.playBow)},{ms:130,pose:wake(POSES.crouch)}];
+  return steps;
+ },
+ // Glances away, then snaps back twice: a cartoon double take.
+ doubleTake(random){
+  return [{ms:between(random,300,500),pose:stand,head:-6},{ms:140,pose:stand,flip:true,head:8,squash:[.94,1.08]},{ms:220,pose:stand,flip:true,head:-10,squash:[1.08,.92],lift:6,emote:'!'},
+   {ms:between(random,500,800),pose:stand,head:-4},{ms:between(random,500,900),pose:wake(pick(random,POSES.sitSmile))}];
+ },
  lookAround(random){
   const steps=[{ms:between(random,250,450),pose:stand}];
   const turns=1+Math.floor(random()*3);

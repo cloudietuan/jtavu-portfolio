@@ -183,3 +183,48 @@ html.fx-cursor-text .cursor-pixel{opacity:0}
 .blind-snoopy::before{content:"";position:absolute;top:30%;height:44%;width:70%;opacity:0;pointer-events:none;background:repeating-linear-gradient(to bottom,var(--ink,#141414) 0 3px,transparent 3px 11px);transition:opacity .12s}
 .blind-snoopy[data-zoom=right]::before{right:88%;opacity:.55;-webkit-mask:linear-gradient(to right,transparent,#000);mask:linear-gradient(to right,transparent,#000)}
 .blind-snoopy[data-zoom=left]::before{left:88%;opacity:.55;-webkit-mask:linear-gradient(to left,transparent,#000);mask:linear-gradient(to left,transparent,#000)}
+
+/* Highlights, offer and experience (November 12 content pass). Minimal: one
+   idea per card, lots of white space, the comic ink only on the edges. */
+.highlights-section,.offer-section,.experience-section{max-width:1500px;margin:auto;padding:110px 0 70px}
+.highlights-section h2,.offer-section h2,.experience-section h2{margin:0 0 40px}
+.highlight-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.highlight-card{position:relative;border:var(--line);border-radius:14px;padding:24px 22px 26px;background:var(--paper);box-shadow:var(--pop);transition:transform .25s cubic-bezier(.3,1.5,.5,1),box-shadow .25s}
+.highlight-card.tone-sun{background:var(--sun)}.highlight-card.tone-red{background:var(--accent);color:#fff}.highlight-card.tone-sky{background:var(--sky)}
+.highlight-card.tone-red .text-action{color:#fff;border-color:#fff}
+.highlight-card h3{font:400 clamp(22px,2vw,30px)/1.05 var(--f-title);margin:0 0 12px}
+.highlight-card p{margin:0 0 14px;font:500 15px/1.5 var(--f-body)}
+.highlight-card:nth-child(odd){rotate:-1.2deg}.highlight-card:nth-child(even){rotate:1deg}
+.highlight-card:hover{transform:translateY(-6px) rotate(-1deg);box-shadow:10px 10px 0 var(--ink)}
+.offer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
+.offer-card{border-top:var(--line);padding:22px 4px 0}
+.offer-card h3{font:400 clamp(22px,2vw,28px)/1.1 var(--f-title);margin:0 0 12px}
+.offer-card p{font:500 16px/1.55 var(--f-body);margin:0 0 16px;max-width:38ch}
+.offer-card ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:0}
+.offer-card li{font:400 15px var(--f-hand);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;background:#fff;transition:transform .2s}
+.offer-card li:hover{transform:translateY(-3px) rotate(-3deg);background:var(--sun)}
+.offer-cta{display:inline-block;margin-top:44px;font:400 clamp(26px,3vw,40px) var(--f-title);color:var(--ink);border-bottom:4px solid var(--accent);padding-bottom:4px}
+.offer-cta span{display:inline-block;transition:transform .25s}.offer-cta:hover span{transform:translateX(10px)}
+.exp-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:56px 64px}
+.exp-group h3{font:400 15px var(--f-hand);text-transform:none;display:inline-block;background:var(--sky);border:2px solid var(--ink);padding:3px 12px;margin:0 0 18px;rotate:-2deg}
+.exp-group ul{list-style:none;padding:0;margin:0}
+.exp-item{padding:16px 0;border-bottom:2px dashed #14141433}
+.exp-item:last-child{border-bottom:0}
+.exp-top{display:flex;justify-content:space-between;gap:16px;align-items:baseline}
+.exp-top b{font:400 20px var(--f-title)}.exp-top span{font:600 12px var(--f-body);color:#666;white-space:nowrap}
+.exp-item em{display:block;font-style:normal;font:700 13px var(--f-body);color:var(--accent);margin:2px 0 6px}
+.exp-item p{margin:0;font:500 15px/1.5 var(--f-body);max-width:56ch}
+.exp-item a{color:inherit;border-bottom:2px solid var(--sun)}
+.exp-more{margin-top:34px;display:inline-block}
+/* Entrances: cards and groups pop in one after another. */
+.highlight-card.reveal,.offer-card.reveal,.exp-group.reveal{opacity:0;transform:translateY(34px) scale(.96);transition:opacity .5s ease calc(var(--i,0)*90ms),transform .6s cubic-bezier(.3,1.45,.5,1) calc(var(--i,0)*90ms)}
+.highlight-card.reveal.is-revealed,.offer-card.reveal.is-revealed,.exp-group.reveal.is-revealed{opacity:1;transform:none}
+.exp-group.is-revealed .exp-item{animation:exp-in .5s both cubic-bezier(.2,.8,.2,1)}
+.exp-group.is-revealed .exp-item:nth-child(2){animation-delay:.07s}.exp-group.is-revealed .exp-item:nth-child(3){animation-delay:.14s}.exp-group.is-revealed .exp-item:nth-child(4){animation-delay:.21s}.exp-group.is-revealed .exp-item:nth-child(5){animation-delay:.28s}
+@keyframes exp-in{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@media(max-width:1000px){.highlight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.offer-grid{grid-template-columns:1fr}.exp-groups{grid-template-columns:1fr}}
+@media(max-width:560px){.highlight-grid{grid-template-columns:1fr}.highlights-section,.offer-section,.experience-section{padding:70px 0 40px}}
+@media(prefers-reduced-motion:reduce){.highlight-card,.offer-card li,.offer-cta span{transition:none}.highlight-card.reveal,.offer-card.reveal,.exp-group.reveal{opacity:1;transform:none;transition:none}.exp-group.is-revealed .exp-item{animation:none}}
+.highlights-section h2,.offer-section h2,.experience-section h2{font:400 clamp(40px,5.2vw,80px)/1 var(--f-mega);font-style:normal;letter-spacing:-.01em;color:var(--ink)}
+.highlight-card.tone-red .text-action{color:var(--ink);border-color:var(--ink)}
+.highlights-section h2,.offer-section h2,.experience-section h2{font-size:clamp(40px,6.2vw,100px);line-height:1.02;text-transform:uppercase}

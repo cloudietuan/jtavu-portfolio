@@ -169,7 +169,9 @@ test('every routine uses real awake poses and ends where it began',()=>{
   const plan=planRoutine(name,()=>r);
   assert.ok(plan.duration>=300&&plan.duration<=9000,`${name} ${plan.duration}`);
   for(const step of plan.steps){
-   if(step.pose.kind==='wake')assert.ok(step.pose.frame>=3&&step.pose.frame<=15,`${name} frame ${step.pose.frame}`);
+   // Frames 0 to 2 are his eyes-closed sleeping frames, drawn in the same style
+   // as standing since the sleep art was unified; only the cat nap uses them.
+   if(step.pose.kind==='wake')assert.ok(step.pose.frame>=(name==='catNap'?0:3)&&step.pose.frame<=15,`${name} frame ${step.pose.frame}`);
    if(step.pose.kind==='action')assert.ok(['swing','ladder','camera','portal'].includes(step.pose.action));
    if(step.pose.kind==='walk')assert.ok(step.pose.frame>=0&&step.pose.frame<8);
   }

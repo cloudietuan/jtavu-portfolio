@@ -18,18 +18,18 @@ import {tailWag} from './snoopyArticulation';
 import {createAgent,decide,tickDrives,settle,rememberVisit} from './snoopyAgent';
 import {planRoutine,sampleRoutine,jumpPhase,JUMP_LAND} from './snoopyRoutines';
 // Real page surfaces Snoopy may stand on. His feet rest on their top edge.
-const TERRAIN='.canvas .object,.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.making-section p,.beyond-section>p,.about-section>p,.contact-section>a:first-of-type,.footer-word';
+const TERRAIN='.canvas .object,.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.highlight-card,.offer-card,.exp-group>h3,.about-section>p,.contact-section>a:first-of-type,.footer-word';
 const DOCK_REST=10000;
 const terrainIds=new WeakMap();let terrainCount=0;
 const terrainId=element=>{if(!terrainIds.has(element))terrainIds.set(element,`surface-${++terrainCount}`);return terrainIds.get(element);};
-const chapters={work:'A few things John’s been making.', 'project-sunset':'This one started with the family salon.', 'project-apparel':'These ideas made it onto actual clothes.', making:'There’s always room for another idea.',beyond:'A little time away from the screen.',about:'You’ve met the work. Here’s John.',contact:'Have an idea? Say hello.'};
+const chapters={work:'Things John’s built.', 'project-sunset':'This one started with the family salon.', 'project-apparel':'These ideas made it onto actual clothes.', highlights:'Start here. These are the big ones.',offer:'Need something built? This part’s for you.',experience:'Everything else John’s been up to.',about:'You’ve met the work. Here’s John.',contact:'Have an idea? Say hi.'};
 export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,onPausedChange,arrival}){
  const docked=useRef(false),panel=useRef(null),opener=useRef(null),body=useRef(null),pos=useRef({x:130,y:250}),target=useRef({x:130,y:250}),velocity=useRef({x:0,y:0}),distance=useRef(0),drag=useRef(null),tour=useRef(0),greeted=useRef(false),petTimer=useRef(null),obstacleCache=useRef({at:0,rects:[]}),menuOpen=useRef(false),initialized=useRef(false),toolAction=useRef(null),scrollPosition=useRef(0),lastSkill=useRef(null),scrollReturn=useRef(null),speechCheck=useRef(0),worldIntent=useRef(null),lastScrollAt=useRef(0),reactionTimer=useRef(null);
  // Resident mode: his own mind (agent) and where he is standing (resident).
  const agent=useRef(createAgent()),resident=useRef({perch:null,jump:null,walkTo:null,walkSpeed:120,routine:null,fling:null,next:null,emoteIndex:-1,scrollV:0,scrollDir:0,scrollDist:0,scrollHopAt:0,riding:false,offSince:0,dockSince:0,platforms:[],covers:[],controls:[],headerBottom:0,scannedAt:0,prefer:null,lastStartle:0,scrollAt:0}),cursor=useRef({x:0,y:0,at:-1e9}),hover=useRef({host:null,at:0}),userAt=useRef(0),autoNap=useRef(false);
  const facingRef=useRef(1);
  const [emote,setEmote]=useState(null),emoteTimer=useRef(null);
- function showEmote(symbol){if(!symbol)return;if(!playfulRef.current&&!['?','!','hi!','♥'].includes(symbol))return;clearTimeout(emoteTimer.current);setEmote({symbol,key:performance.now()});emoteTimer.current=setTimeout(()=>setEmote(null),1500);}
+ function showEmote(symbol){if(!symbol)return;if(!playfulRef.current&&!['?','!','hi!','♥','z'].includes(symbol))return;clearTimeout(emoteTimer.current);setEmote({symbol,key:performance.now()});emoteTimer.current=setTimeout(()=>setEmote(null),1500);}
  // Calm host by default; the playful resident is one tap away.
  const [playful,setPlayful]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-playful')!=='false'}catch{return false}});const playfulRef=useRef(playful);playfulRef.current=playful;
  useEffect(()=>{try{sessionStorage.setItem('jtavu-snoopy-playful',String(playful))}catch{}},[playful]);
