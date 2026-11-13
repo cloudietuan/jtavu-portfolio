@@ -84,15 +84,15 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
       const climbLift = action === 'ladder' ? Math.sin(Math.min(1, Math.max(0, actionProgress)) * Math.PI * 8) * 3 : 0;
       const articulated = !actionFrame && action !== 'bow' && standing && !walking && standingFrame === 2 && (head || tail);
       if (articulated) {
-        ctx.translate((384 - width) / 2 * UNIT, (376 - height) * UNIT);
+        ctx.translate((384 - width) / 2 * UNIT, (383 - height) * UNIT);
         ctx.scale(scale * UNIT, scale * UNIT);
         drawArticulated(ctx, texture, f, { head, tail });
       } else if (action === 'bow') {
-        ctx.translate((384 - width) / 2 * UNIT, (376 - height) * UNIT);
+        ctx.translate((384 - width) / 2 * UNIT, (383 - height) * UNIT);
         ctx.scale(scale * UNIT, scale * UNIT);
         drawBow(ctx, texture, f, actionProgress);
       } else ctx.drawImage(texture, f.x, f.y, f.w, f.h,
-        ((384 - width) / 2 + (name === 'wake' ? wakeShift(frame, width) : 0)) * UNIT, (376 - height - climbLift) * UNIT, width * UNIT, height * UNIT);
+        ((384 - width) / 2 + (name === 'wake' ? wakeShift(frame, width) : 0)) * UNIT, (383 - height - climbLift) * UNIT, width * UNIT, height * UNIT);
       ctx.restore();
       unifyPixels(ctx, GRID, true);
     });

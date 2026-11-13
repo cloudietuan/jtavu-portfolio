@@ -15,10 +15,14 @@ export const MOODS=Object.freeze({
 export const moodFor=energy=>energy<.35?'tired':energy<.7?'calm':'playful';
 
 /** Weighted choice that skips the last two routines, so he rarely repeats himself. */
-export function pickRoutine(energy,recent=[],random=Math.random,calm=false){
+// Routines where he lies down. A dog his size only lies down where there is
+// room for his whole body, never across a narrow card or on the ball.
+export const LYING=Object.freeze(['lieDown','catNap']);
+export function pickRoutine(energy,recent=[],random=Math.random,calm=false,exclude=null){
  const table=calm?MOODS.host:MOODS[moodFor(energy)];
- let entries=Object.entries(table).filter(([name])=>!recent.slice(-2).includes(name));
- if(!entries.length)entries=Object.entries(table);
+ let entries=Object.entries(table).filter(([name])=>!recent.slice(-2).includes(name)&&!(exclude&&exclude.includes(name)));
+ if(!entries.length)entries=Object.entries(table).filter(([name])=>!(exclude&&exclude.includes(name)));
+ if(!entries.length)entries=[['sit',1]];
  const total=entries.reduce((sum,[,w])=>sum+w,0);
  let roll=random()*total;
  for(const [name,w] of entries){roll-=w;if(roll<0)return name;}
@@ -59,7 +63,7 @@ export function rememberVisit(agent,id){
  * busy or resting. `random` is injected so the choice is testable.
  */
 export function decide(agent,senses,random=Math.random){
- const {now,platformId,otherPlatforms=0,cursor=null,snoopy,span,userIdleMs=0,hover=null,size=96,calm=false}=senses;
+ const {now,platformId,otherPlatforms=0,cursor=null,snoopy,span,userIdleMs=0,hover=null,size=96,calm=false,roomy=true}=senses;
  // Calm, he rests three times as long between actions.
  const pace=calm?3:1;
  if(agent.napping){
@@ -70,8 +74,11 @@ export function decide(agent,senses,random=Math.random){
  if(hover&&hover.id!==platformId&&hover.ms>=AGENT_TIMING.hoverDwell)
   return {agent:settle(agent,now,2600),intent:{type:'travel',to:hover.id,reason:'hover'}};
  if(now<agent.until)return {agent,intent:null};
- if(userIdleMs>=AGENT_TIMING.napAfterIdle||(agent.energy<.25&&userIdleMs>=AGENT_TIMING.tiredNapAfterIdle))
+ if(userIdleMs>=AGENT_TIMING.napAfterIdle||(agent.energy<.25&&userIdleMs>=AGENT_TIMING.tiredNapAfterIdle)){
+  // Sleepy on a narrow ledge: first find somewhere with room to lie down.
+  if(!roomy)return {agent:settle(agent,now,2600),intent:{type:'travel',reason:'nap',roomy:true}};
   return {agent:{...agent,napping:true},intent:{type:'nap'}};
+ }
  const cursorNear=cursor&&cursor.ageMs<AGENT_TIMING.cursorFresh&&Math.abs(cursor.y-(snoopy.y-size/2))<220;
  if(cursorNear){
   const dx=cursor.x-snoopy.x,facing=dx<0?-1:1;
@@ -96,7 +103,7 @@ export function decide(agent,senses,random=Math.random){
  // Between quiet routines the host simply stands and watches for a while.
  if(calm&&roll>.55)return {agent:settle(agent,now,3500+random()*4000),intent:{type:'watch',facing:random()<.5?-1:1}};
  if(!calm&&roll>.92&&agent.energy>.4)return {agent:settle(agent,now,1800),intent:{type:'hop'}};
- const name=pickRoutine(agent.energy,agent.recent,random,calm);
+ const name=pickRoutine(agent.energy,agent.recent,random,calm,roomy?null:LYING);
  // `until` stays open while the routine plays; the page settles him afterwards.
  return {agent:{...remember(agent,name),until:Infinity},intent:{type:'routine',name}};
 }

@@ -13,18 +13,68 @@ import {choosePlaygroundMoment,swingPoint,swingRotation} from './snoopyBrain';
 import {companionDock,resolvePresence,scrollDisposition} from './snoopyPresence';
 import {advanceMovement} from './snoopyMovement';
 import {safePoint as findSafePoint,clampPoint,isClear,findClimbCorridor,findReturnStation} from './snoopySafety';
-import {buildPlatforms,choosePlatform,jumpPoint,jumpDuration,flingStep,findDropTarget} from './snoopyTerrain';
+import {imageSurface,textSurfaceTop,tiltedSurface,buildPlatforms,choosePlatform,jumpPoint,jumpDuration,flingStep,findDropTarget} from './snoopyTerrain';
 import {tailWag} from './snoopyArticulation';
 import {createAgent,decide,tickDrives,settle,rememberVisit} from './snoopyAgent';
 import {planRoutine,sampleRoutine,jumpPhase,JUMP_LAND} from './snoopyRoutines';
 // Real page surfaces Snoopy may stand on. His feet rest on their top edge.
-const TERRAIN='.canvas .object,.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.highlight-card,.offer-card,.exp-group>h3,.about-section>p,.contact-section>a:first-of-type,.footer-word';
+const TERRAIN='.canvas .object:not(.ball),.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.highlight-card,.offer-card,.exp-group>h3,.about-section>p,.contact-section>a:first-of-type,.footer-word';
+// The volleyball is not a resting surface: a dog his size cannot balance on a ball.
+// Measured once per image: how much of it is transparent padding on each side.
+const imageInsetCache=new Map();
+function imageInsets(img){
+ if(!img?.complete||!img.naturalWidth)return null;
+ if(imageInsetCache.has(img.currentSrc||img.src))return imageInsetCache.get(img.currentSrc||img.src);
+ let insets=null;
+ try{
+  const w=64,h=Math.max(1,Math.round(64*img.naturalHeight/img.naturalWidth)),c=document.createElement('canvas');c.width=w;c.height=h;
+  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);const d=ctx.getImageData(0,0,w,h).data;
+  let t=h,b=-1,l=w,r=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>60){if(y<t)t=y;if(y>b)b=y;if(x<l)l=x;if(x>r)r=x;}
+  if(b>=0)insets={top:t/h,bottom:(h-1-b)/h,left:l/w,right:(w-1-r)/w};
+ }catch{}
+ imageInsetCache.set(img.currentSrc||img.src,insets);return insets;
+}
+// Capital-letter height for a font, measured once per font.
+const capCache=new Map();
+function fontMetrics(font){
+ if(capCache.has(font))return capCache.get(font);
+ let m=null;try{const ctx=document.createElement('canvas').getContext('2d');ctx.font=font;const t=ctx.measureText('HE');m={fontAscent:t.fontBoundingBoxAscent,fontDescent:t.fontBoundingBoxDescent,capAscent:t.actualBoundingBoxAscent};}catch{}
+ capCache.set(font,m);return m;
+}
+// How wide a surface must be, in body widths, before he will lie down on it.
+const ROOMY=1.4;
+const TEXT_SURFACE='H1,H2,H3,P,A';
+function rotationOf(element){
+ const cs=getComputedStyle(element);let a=0;
+ if(cs.transform&&cs.transform!=='none'){try{const m=new DOMMatrixReadOnly(cs.transform);a+=Math.atan2(m.b,m.a);}catch{}}
+ const r=parseFloat(cs.rotate);if(Number.isFinite(r))a+=r*Math.PI/180;
+ return a;
+}
+function surfaceRect(element){
+ const b=element.getBoundingClientRect(),box={left:b.left,right:b.right,top:b.top,bottom:b.bottom};
+ const img=element.matches('.canvas .object')?element.querySelector('img'):null;
+ // Tilted cards and props: follow the slanted top edge, not the bounding box.
+ const angle=rotationOf(element);
+ if(Math.abs(angle)>.004&&element.offsetWidth){
+  const t=tiltedSurface({cx:(b.left+b.right)/2,cy:(b.top+b.bottom)/2,width:element.offsetWidth,height:element.offsetHeight,angle,insets:img?imageInsets(img):null});
+  return sized({left:t.left,right:t.right,top:t.top,bottom:b.bottom,cx:t.cx,slope:t.slope});
+ }
+ if(img){const ib=img.getBoundingClientRect();return sized(imageSurface({left:ib.left,right:ib.right,top:ib.top,bottom:ib.bottom},imageInsets(img)));}
+ if(TEXT_SURFACE.includes(element.tagName)){
+  const cs=getComputedStyle(element),m=fontMetrics(`${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`);
+  const lh=parseFloat(cs.lineHeight);
+  if(m&&Number.isFinite(lh))box.top=textSurfaceTop({top:b.top,paddingTop:parseFloat(cs.paddingTop)||0,borderTop:parseFloat(cs.borderTopWidth)||0,lineHeight:lh,...m});
+ }
+ return sized(box);
+}
+const sized=r=>({...r,width:r.right-r.left,height:r.bottom-r.top});
 const DOCK_REST=10000;
 const terrainIds=new WeakMap();let terrainCount=0;
 const terrainId=element=>{if(!terrainIds.has(element))terrainIds.set(element,`surface-${++terrainCount}`);return terrainIds.get(element);};
 const chapters={work:'Things John’s built.', 'project-sunset':'This one started with the family salon.', 'project-apparel':'These ideas made it onto actual clothes.', highlights:'Start here. These are the big ones.',offer:'Need something built? This part’s for you.',experience:'Everything else John’s been up to.',about:'You’ve met the work. Here’s John.',contact:'Have an idea? Say hi.'};
 export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,onPausedChange,arrival}){
- const docked=useRef(false),panel=useRef(null),opener=useRef(null),body=useRef(null),pos=useRef({x:130,y:250}),target=useRef({x:130,y:250}),velocity=useRef({x:0,y:0}),distance=useRef(0),drag=useRef(null),tour=useRef(0),greeted=useRef(false),petTimer=useRef(null),obstacleCache=useRef({at:0,rects:[]}),menuOpen=useRef(false),initialized=useRef(false),toolAction=useRef(null),scrollPosition=useRef(0),lastSkill=useRef(null),scrollReturn=useRef(null),speechCheck=useRef(0),worldIntent=useRef(null),lastScrollAt=useRef(0),reactionTimer=useRef(null);
+ const docked=useRef(false),panel=useRef(null),opener=useRef(null),body=useRef(null),shadowRef=useRef(null),dustLayer=useRef(null),pos=useRef({x:130,y:250}),target=useRef({x:130,y:250}),velocity=useRef({x:0,y:0}),distance=useRef(0),drag=useRef(null),tour=useRef(0),greeted=useRef(false),petTimer=useRef(null),obstacleCache=useRef({at:0,rects:[]}),menuOpen=useRef(false),initialized=useRef(false),toolAction=useRef(null),scrollPosition=useRef(0),lastSkill=useRef(null),scrollReturn=useRef(null),speechCheck=useRef(0),worldIntent=useRef(null),lastScrollAt=useRef(0),reactionTimer=useRef(null);
  // Resident mode: his own mind (agent) and where he is standing (resident).
  const agent=useRef(createAgent()),resident=useRef({perch:null,jump:null,walkTo:null,walkSpeed:120,routine:null,fling:null,next:null,emoteIndex:-1,scrollV:0,scrollDir:0,scrollDist:0,scrollHopAt:0,riding:false,offSince:0,dockSince:0,platforms:[],covers:[],controls:[],headerBottom:0,scannedAt:0,prefer:null,lastStartle:0,scrollAt:0}),cursor=useRef({x:0,y:0,at:-1e9}),hover=useRef({host:null,at:0}),userAt=useRef(0),autoNap=useRef(false);
  const facingRef=useRef(1);
@@ -55,6 +105,27 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  const poseKey=o=>`${o.walking}|${o.kind}|${o.frame}|${o.action}|${o.facing}|${o.transform}|${o.head||0}|${o.tail||0}`;
  function showPose(next){setPose(old=>poseKey(old)===poseKey(next)?old:next);}
  function plainPose(){setPose(old=>old.walking||old.kind||old.transform||old.head||old.tail?{walking:false,frame:2,facing:old.facing}:old);}
+ // Little pixel dust puffs where his feet hit the surface.
+ function kickDust(x,y,strength=.5){
+  if(reduced||!dustLayer.current)return;
+  const n=3+Math.round(5*strength);
+  for(let i=0;i<n;i++){
+   const d=document.createElement('i'),dir=i%2?1:-1,spread=(10+Math.random()*26)*(.6+strength),sz=Math.round(3+Math.random()*3*(.5+strength));
+   d.className='snoopy-dust';d.style.cssText=`left:${x+dir*size*.12}px;top:${y-2}px;width:${sz}px;height:${sz}px`;
+   dustLayer.current.appendChild(d);
+   d.animate([{transform:'translate(-50%,-50%)',opacity:.9},{transform:`translate(calc(-50% + ${(dir*spread).toFixed(1)}px),calc(-50% - ${(6+Math.random()*12*strength).toFixed(1)}px)) scale(.5)`,opacity:0}],{duration:420+Math.random()*220,easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish=()=>d.remove();
+  }
+ }
+ // Where the ground is under him right now: his surface, the surface a jump
+ // is heading for, or the nearest surface below him while he falls.
+ function groundBelow(){
+  const r=resident.current,x=pos.current.x,y=pos.current.y;
+  if(docked.current||r.perch)return y;
+  if(r.jump&&r.jump.element?.isConnected){const b=surfaceRect(r.jump.element);return b.slope?b.top+b.slope*(x-b.cx):b.top;}
+  let best=innerHeight;
+  for(const p of r.platforms||[])if(x>=p.left&&x<=p.right&&p.y>=y-2&&p.y<best)best=p.y;
+  return best;
+ }
  function motionTransform(lean=0,lift=0,squash=[1,1],facing=1){
   if(!lean&&!lift&&squash[0]===1&&squash[1]===1)return undefined;
   return `translateY(${-lift.toFixed(1)}px) rotate(${(lean*facing).toFixed(1)}deg) scale(${squash[0].toFixed(3)},${squash[1].toFixed(3)})`;
@@ -86,13 +157,13 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
   if(light){
    // In flight only surface positions matter, and they move every frame while scrolling.
    const header=document.querySelector('.site-header')?.getBoundingClientRect();r.headerBottom=header?Math.max(0,header.bottom):0;
-   const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>{const b=element.getBoundingClientRect();return {element,id:terrainId(element),rect:{left:b.left,right:b.right,top:b.top,bottom:b.bottom}};});
+   const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>({element,id:terrainId(element),rect:surfaceRect(element)}));
    return r.platforms=buildPlatforms(nodes,{width:innerWidth,height:innerHeight,size,top:r.headerBottom});
   }
   r.scannedAt=now;
   const header=document.querySelector('.site-header')?.getBoundingClientRect();
   r.headerBottom=header?Math.max(0,header.bottom):0;
-  const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>{const b=element.getBoundingClientRect();return {element,id:terrainId(element),rect:{left:b.left,right:b.right,top:b.top,bottom:b.bottom}};});
+  const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>({element,id:terrainId(element),rect:surfaceRect(element)}));
   r.controls=[...document.querySelectorAll('a,button,summary,input,select,textarea')].filter(e=>!e.closest('.snoopy-companion,.snoopy-control-panel')).map(e=>e.getBoundingClientRect()).filter(b=>b.width&&b.height&&b.bottom>0&&b.top<innerHeight&&b.width*b.height<60000);
   r.covers=obstacles(true).filter(b=>b.width*b.height<60000||b.height<120);
   r.platforms=buildPlatforms(nodes,{width:innerWidth,height:innerHeight,size,top:r.headerBottom});
@@ -164,7 +235,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     if(now-lastScrollAt.current<300){leavePerch();docked.current=true;r.dockSince=now-DOCK_REST+400;return;}
     relocate(now,{nearby:true});return;
    }
-   const pl=f.landed;r.perch={element:pl.element,id:pl.id,fx:f.x-pl.left};
+   const pl=f.landed;r.perch={element:pl.element,id:pl.id,fx:f.x-pl.left};kickDust(f.x,pl.y,Math.min(1,impact/1400));
    r.routine=slid
     // A slide ends sitting, with a bump, before he stands back up.
     ?{plan:{name:'land',duration:520,steps:[{start:0,ms:200,pose:{kind:'wake',frame:12},squash:[1.1,.86]},{start:200,ms:200,pose:{kind:'wake',frame:15}},{start:400,ms:120,pose:{kind:'wake',frame:9}}]},started:now,facing}
@@ -174,9 +245,10 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
    return;
   }
   if(r.jump){
-   const j=r.jump,b=j.element.isConnected?j.element.getBoundingClientRect():null;
+   const j=r.jump,b=j.element.isConnected?surfaceRect(j.element):null;
    if(!b||!b.width){r.jump=null;return;}
-   const end={x:Math.max(edge,Math.min(innerWidth-edge,b.left+j.fx)),y:b.top},start={x:j.from.x,y:j.from.y-window.scrollY};
+   const endX=Math.max(edge,Math.min(innerWidth-edge,b.left+j.fx));
+   const end={x:endX,y:b.slope?b.top+b.slope*(endX-b.cx):b.top},start={x:j.from.x,y:j.from.y-window.scrollY};
    const phase=jumpPhase(now-j.started,j.duration),turn=Math.abs(end.x-start.x)>4?Math.sign(end.x-start.x):0,facing=turn||facingNow();
    if(phase.phase==='crouch'){
     // Anticipation: he gathers himself before leaving the ground.
@@ -196,17 +268,20 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
    // Landing: he is on the surface now, absorbing the impact in a crouch.
    pos.current={...end};target.current={...end};velocity.current={x:0,y:0};
    r.perch={element:j.element,id:j.id,fx:j.fx};r.jump=null;
-   r.routine={plan:{name:'land',duration:JUMP_LAND,steps:[{start:0,ms:JUMP_LAND,pose:{kind:'action',action:'portal'},squash:[1.12,.85]}]},started:now,facing};
+   // The higher he dropped from, the deeper he squashes and the more dust he kicks up.
+   const drop=Math.max(0,end.y-Math.min(start.y,end.y-size*.6)),hard=Math.min(1,drop/(size*3));
+   r.routine={plan:{name:'land',duration:JUMP_LAND+Math.round(90*hard),steps:[{start:0,ms:JUMP_LAND*.6,pose:{kind:'action',action:'portal'},squash:[1.1+.08*hard,.86-.08*hard]},{start:JUMP_LAND*.6,ms:JUMP_LAND*.4+Math.round(90*hard),pose:{kind:'action',action:'portal'},squash:[.97,1.04]}]},started:now,facing};
+   kickDust(end.x,end.y,.4+.6*hard);
    return;
   }
   if(r.perch){
-   const p=r.perch,b=p.element.isConnected?p.element.getBoundingClientRect():null;
+   const p=r.perch,b=p.element.isConnected?surfaceRect(p.element):null;
    if(!b||!b.width)r.perch=null;
    else{
     const minX=Math.max(b.left+size*.3,edge),maxX=Math.min(b.right-size*.3,innerWidth-edge),standable=maxX>=minX;
     const x=standable?Math.max(minX,Math.min(maxX,b.left+p.fx)):b.left+p.fx;
     // He rides his surface, so ordinary scrolling carries him with the page.
-    pos.current={x,y:b.top};target.current={...pos.current};velocity.current={x:0,y:0};
+    pos.current={x,y:b.slope?b.top+b.slope*(x-b.cx):b.top};target.current={...pos.current};velocity.current={x:0,y:0};
     const off=!standable||b.top-size<r.headerBottom||b.top>innerHeight-4;
     if(off){if(!r.offSince)r.offSince=now;}else r.offSince=0;
     if(frozen){
@@ -292,7 +367,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     // Guiding: he stays put beside the project he is explaining.
     if(r.guiding)return;
     const host=hover.current.host,hovered=host?.isConnected?r.platforms.find(q=>host.contains(q.element)):null,c=cursor.current;
-    const result=decide(agent.current,{now,platformId:p.id,otherPlatforms:r.platforms.filter(q=>q.element!==p.element).length,cursor:{x:c.x,y:c.y,ageMs:now-c.at},snoopy:pos.current,span:{minX,maxX},userIdleMs:now-userAt.current,hover:hovered?{id:hovered.id,ms:now-hover.current.at}:null,size,calm:!playfulRef.current});
+    const result=decide(agent.current,{now,platformId:p.id,otherPlatforms:r.platforms.filter(q=>q.element!==p.element).length,cursor:{x:c.x,y:c.y,ageMs:now-c.at},snoopy:pos.current,span:{minX,maxX},userIdleMs:now-userAt.current,hover:hovered?{id:hovered.id,ms:now-hover.current.at}:null,size,calm:!playfulRef.current,roomy:b.right-b.left>=ROOMY*size});
     agent.current=result.agent;const intent=result.intent;
     if(!intent)return;
     if(r.routine){if(intent.type!=='travel')return;r.routine=null;}
@@ -308,7 +383,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     else if(intent.type==='routine')startRoutine(intent.name,now,intent.facing);
     else if(intent.type==='watch')setPose(old=>old.facing===intent.facing?old:{...old,facing:intent.facing});
     else if(intent.type==='hop')jumpTo({element:p.element,id:p.id,left:b.left,y:b.top},x,now);
-    else if(intent.type==='travel'){if(relocate(now,{to:intent.to})&&intent.reason==='hover')speak(chapters[host?.id]||'Ooh, this one. Good pick.');}
+    else if(intent.type==='travel'){if(intent.roomy){if(relocate(now,{where:q=>q.right-q.left>=ROOMY*size,mustLeave:true}))showEmote('z');}else if(relocate(now,{to:intent.to})&&intent.reason==='hover')speak(chapters[host?.id]||'Ooh, this one. Good pick.');}
     else if(intent.type==='nap'){autoNap.current=true;setSleep(true);speak('Resting my eyes for a second.');}
     return;
    }
@@ -470,7 +545,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
    }
    pos.current=result.position;velocity.current=result.velocity;distance.current+=result.travelled;const facing=Math.abs(result.velocity.x)>5?Math.sign(result.velocity.x):null;const frame=Math.floor(distance.current/14)%8;setPose(old=>{const next={walking:result.moving,frame:result.moving?frame:2,facing:facing||old.facing};return old.walking===next.walking&&old.frame===next.frame&&old.facing===next.facing?old:next});
   }
-  const side=pos.current.x>innerWidth-180?'right':pos.current.x<140?'left':'center';const panelHeight=body.current?.querySelector('.companion-menu')?.offsetHeight||300;const aboveRoom=pos.current.y-size-12,belowRoom=innerHeight-pos.current.y-12;const below=aboveRoom<panelHeight&&belowRoom>aboveRoom;if(body.current)body.current.style.setProperty('--snoopy-panel-max-height',`${Math.max(80,below?belowRoom:aboveRoom)}px`);setPlacement(old=>old.side===side&&old.below===below?old:{side,below});const presence=resolvePresence({point:pos.current,width:innerWidth,height:innerHeight,size,obstacles:obstacles(),docked:docked.current,passing:returning?.stage==='passing',dragging:!!drag.current,performing:!!toolAction.current&&toolAction.current.stage!=='approach'||scrollReturn.current?.stage==='pop'||residentActive||living&&!!(action||toolAction.current)});if(presence.docked){pos.current=presence.point;target.current={...pos.current};velocity.current={x:0,y:0};}docked.current=presence.docked;if(body.current){body.current.dataset.surface=r.fling?.slide?'slide':r.fling?'fling':r.jump?'jump':r.perch?'perch':presence.docked?'dock':'air';body.current.dataset.docked=String(presence.docked);body.current.style.transform=`translate(${pos.current.x-size/2}px,${pos.current.y-size}px)`;body.current.style.visibility=presence.visible?'visible':'hidden';}
+  const side=pos.current.x>innerWidth-180?'right':pos.current.x<140?'left':'center';const panelHeight=body.current?.querySelector('.companion-menu')?.offsetHeight||300;const aboveRoom=pos.current.y-size-12,belowRoom=innerHeight-pos.current.y-12;const below=aboveRoom<panelHeight&&belowRoom>aboveRoom;if(body.current)body.current.style.setProperty('--snoopy-panel-max-height',`${Math.max(80,below?belowRoom:aboveRoom)}px`);setPlacement(old=>old.side===side&&old.below===below?old:{side,below});const presence=resolvePresence({point:pos.current,width:innerWidth,height:innerHeight,size,obstacles:obstacles(),docked:docked.current,passing:returning?.stage==='passing',dragging:!!drag.current,performing:!!toolAction.current&&toolAction.current.stage!=='approach'||scrollReturn.current?.stage==='pop'||residentActive||living&&!!(action||toolAction.current)});if(presence.docked){pos.current=presence.point;target.current={...pos.current};velocity.current={x:0,y:0};}docked.current=presence.docked;if(body.current){body.current.dataset.surface=r.fling?.slide?'slide':r.fling?'fling':r.jump?'jump':r.perch?'perch':presence.docked?'dock':'air';body.current.dataset.docked=String(presence.docked);body.current.style.transform=`translate(${pos.current.x-size/2}px,${pos.current.y-size}px)`;if(shadowRef.current){const g=groundBelow(),h=Math.max(0,g-pos.current.y),k=Math.max(.25,1-h/(size*3.2));shadowRef.current.style.transform=`translate(${pos.current.x-size*.3}px,${g-size*.045}px) scale(${k.toFixed(3)})`;shadowRef.current.style.opacity=presence.visible&&!presence.docked?(.32*k).toFixed(3):'0';}body.current.style.visibility=presence.visible?'visible':'hidden';}
   if(now-speechCheck.current>150){speechCheck.current=now;const bubble=body.current?.querySelector('.companion-speech');if(bubble){const b=bubble.getBoundingClientRect();bubble.style.visibility=obstacles().some(o=>b.left<o.right+4&&b.right>o.left-4&&b.top<o.bottom+4&&b.bottom>o.top-4)?'hidden':'visible';}}
   id=requestAnimationFrame(tick);
  };id=requestAnimationFrame(tick);return()=>cancelAnimationFrame(id)},[active,roam,sleep,menu,size,reduced,living]);
@@ -537,7 +612,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  function pet(){if(roam&&!sleep&&!reduced&&startMove('bow',true))return;stopAction();setMenu(false);setSleep(false);setPetting(true);speak('That’s the spot.');clearTimeout(petTimer.current);petTimer.current=setTimeout(()=>setPetting(false),700)}
  function showProject(){setMenu(false);setSleep(false);const ids=projectList.map(p=>`project-${p.id}`);const id=ids[tour.current++%ids.length];navigate(id);if(living){resident.current.prefer=document.getElementById(id);agent.current=settle(agent.current,performance.now(),3000);}else move(innerWidth-65,innerHeight-90);speak(chapters[id]||'Let’s take a look at this one.');}
  if(!active)return null;
- return <><SnoopyTools tool={toolView.tool} anchor={toolView.anchor} progress={toolView.progress} tip={toolView.tip} rotation={toolView.rotation} subjectRect={toolView.subjectRect} subjectLabel={toolView.subjectLabel} rise={toolView.rise} actorSize={size} opacity={toolView.opacity} phase={toolView.phase} reduced={reduced}/><div ref={body} className={`snoopy-companion ${placement.side} ${reduced?'is-reduced':''} ${reaction?'reaction-'+reaction:''} ${!paused&&!sleep&&!menu&&!dragging&&!pose.walking&&!pose.transform&&!pose.kind&&!reaction&&!toolView.tool?'is-idle':''} ${dragging?'is-dragging':''} ${petting?'getting-pets':''} ${sleep?'is-sleeping':''} ${building?'is-building':''} ${placement.below?'popup-below':''}`} style={{width:size,height:size}}>
+ return <><SnoopyTools tool={toolView.tool} anchor={toolView.anchor} progress={toolView.progress} tip={toolView.tip} rotation={toolView.rotation} subjectRect={toolView.subjectRect} subjectLabel={toolView.subjectLabel} rise={toolView.rise} actorSize={size} opacity={toolView.opacity} phase={toolView.phase} reduced={reduced}/><div ref={shadowRef} className="snoopy-ground-shadow" aria-hidden="true" style={{width:size*.6,height:size*.09}}/><div ref={dustLayer} className="snoopy-dust-layer" aria-hidden="true"/><div ref={body} className={`snoopy-companion ${placement.side} ${reduced?'is-reduced':''} ${reaction?'reaction-'+reaction:''} ${!paused&&!sleep&&!menu&&!dragging&&!pose.walking&&!pose.transform&&!pose.kind&&!reaction&&!toolView.tool?'is-idle':''} ${dragging?'is-dragging':''} ${petting?'getting-pets':''} ${sleep?'is-sleeping':''} ${building?'is-building':''} ${placement.below?'popup-below':''}`} style={{width:size,height:size}}>
  {petting&&<span className="snoopy-affection" aria-hidden="true"><i>♥</i><i>♥</i><i>♥</i></span>}
  <span className="snoopy-dock-label" aria-hidden="true">Snoopy · drag me</span>
  {sleep&&<span className="companion-sleep-mark" aria-hidden="true">Z z</span>}

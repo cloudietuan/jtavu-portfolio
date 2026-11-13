@@ -131,3 +131,33 @@ export function findDropTarget(platforms,current,{size,width}){
  }
  return options.sort((a,b)=>a.drop-b.drop)[0]||null;
 }
+
+// Where the visible surface really is, so his feet touch it with no gap.
+// An image's box includes transparent padding; `insets` are the fractions of
+// the image that are empty on each side.
+export function imageSurface(box,insets){
+ if(!insets)return box;
+ const w=box.right-box.left,h=box.bottom-box.top;
+ return {left:box.left+w*insets.left,right:box.right-w*insets.right,top:box.top+h*insets.top,bottom:box.bottom-h*insets.bottom};
+}
+// A text block's box starts above its letters (half-leading plus the font's
+// ascent above capital height). The surface is the top of the capitals on the
+// first line.
+export function textSurfaceTop({top,paddingTop=0,borderTop=0,lineHeight,fontAscent,fontDescent,capAscent}){
+ if(![lineHeight,fontAscent,fontDescent,capAscent].every(Number.isFinite))return top;
+ const halfLeading=(lineHeight-(fontAscent+fontDescent))/2;
+ return top+borderTop+paddingTop+halfLeading+(fontAscent-capAscent);
+}
+// A tilted element (rotated card): the top edge is a slanted line. Given the
+// element's centre, untransformed size, rotation and any transparent insets,
+// returns its span, the edge height at the centre, and the slope, so he can
+// stand on the real edge anywhere along it.
+export function tiltedSurface({cx,cy,width,height,angle,insets=null}){
+ const i=insets||{top:0,left:0,right:0};
+ const y0=-height/2+height*i.top,x1=-width/2+width*i.left,x2=width/2-width*i.right;
+ const c=Math.cos(angle),s=Math.sin(angle);
+ const L={x:cx+x1*c-y0*s,y:cy+x1*s+y0*c},R={x:cx+x2*c-y0*s,y:cy+x2*s+y0*c};
+ const slope=Math.abs(R.x-L.x)<1e-6?0:(R.y-L.y)/(R.x-L.x);
+ const mid=(L.x+R.x)/2;
+ return {left:Math.min(L.x,R.x),right:Math.max(L.x,R.x),top:L.y+(mid-L.x)*slope,cx:mid,slope};
+}

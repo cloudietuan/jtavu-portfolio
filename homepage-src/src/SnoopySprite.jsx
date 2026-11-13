@@ -83,9 +83,10 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
       ctx.imageSmoothingEnabled = false;
       if (facing < 0) { ctx.translate(GRID, 0); ctx.scale(-1, 1); }
       // A bounded source rectangle prevents neighbouring frames from appearing.
-      // Every pose shares the same bottom-centre foot anchor.
+      // Every pose shares the same bottom-centre foot anchor, flush with the bottom
+      // of his box so his feet (or body, lying down) touch the surface.
       ctx.drawImage(texture, f.x, f.y, f.w, f.h,
-        ((384 - width) / 2 + shift) * UNIT, (376 - height) * UNIT, width * UNIT, height * UNIT);
+        ((384 - width) / 2 + shift) * UNIT, (383 - height) * UNIT, width * UNIT, height * UNIT);
       ctx.restore();
       unifyPixels(ctx, GRID);
       // A tiny squash-and-settle on each new pose joins the frames into one motion.
