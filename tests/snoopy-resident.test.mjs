@@ -314,3 +314,23 @@ test('sliding is a controlled descent that still lands on surfaces',()=>{
  for(let i=0;i<30&&!caught;i++){surfaceY-=40;const pl=buildPlatforms([node('rising',100,surfaceY,600)],world);b=flingStep(b,1/60,{...world,platforms:pl,shift:40});caught=b.landed;}
  assert.equal(caught?.id,'rising');
 });
+
+test('the calm host stays quiet: no tricks, long rests, rare travel',()=>{
+ const agent={...rested(createAgent(0)),curiosity:0,wavedAt:10000},seen=new Set();let rests=0,n=0;
+ for(let i=0;i<200;i++){
+  const r=i/200,{agent:next,intent}=decide(agent,senses({calm:true}),()=>r);
+  seen.add(intent.type==='routine'?intent.name:intent.type);
+  assert.notEqual(intent.type,'hop');
+  if(intent.type==='walk')assert.ok(intent.speed<=80);
+  if(next.until!==Infinity){rests+=next.until-10000;n++;}
+ }
+ for(const loud of ['cheer','chaseTail','playBow'])assert.ok(!seen.has(loud),loud);
+ assert.ok(seen.has('sit')&&seen.has('watch'));
+ assert.ok(rests/n>3000,'average rest '+rests/n);
+ for(let i=0;i<40;i++)assert.ok(Object.keys(MOODS.host).includes(pickRoutine(.9,[],()=>i/40,true)));
+ // He does not chase the cursor, he just turns to look.
+ const near=decide(agent,senses({calm:true,cursor:{x:440,y:260,ageMs:100}}),()=>.99).intent;
+ assert.equal(near.type,'watch');
+ // A lingering hover still brings him over: that is his job.
+ assert.equal(decide(agent,senses({calm:true,hover:{id:'b',ms:AGENT_TIMING.hoverDwell}}),()=>.5).intent.type,'travel');
+});

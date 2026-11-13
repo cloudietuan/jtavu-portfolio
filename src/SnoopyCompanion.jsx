@@ -28,7 +28,10 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  const agent=useRef(createAgent()),resident=useRef({perch:null,jump:null,walkTo:null,walkSpeed:120,routine:null,fling:null,next:null,emoteIndex:-1,scrollV:0,scrollDir:0,scrollDist:0,scrollHopAt:0,riding:false,offSince:0,dockSince:0,platforms:[],covers:[],controls:[],headerBottom:0,scannedAt:0,prefer:null,lastStartle:0,scrollAt:0}),cursor=useRef({x:0,y:0,at:-1e9}),hover=useRef({host:null,at:0}),userAt=useRef(0),autoNap=useRef(false);
  const facingRef=useRef(1);
  const [emote,setEmote]=useState(null),emoteTimer=useRef(null);
- function showEmote(symbol){if(!symbol)return;clearTimeout(emoteTimer.current);setEmote({symbol,key:performance.now()});emoteTimer.current=setTimeout(()=>setEmote(null),1500);}
+ function showEmote(symbol){if(!symbol)return;if(!playfulRef.current&&!['?','!','hi!','♥'].includes(symbol))return;clearTimeout(emoteTimer.current);setEmote({symbol,key:performance.now()});emoteTimer.current=setTimeout(()=>setEmote(null),1500);}
+ // Calm host by default; the playful resident is one tap away.
+ const [playful,setPlayful]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-playful')==='true'}catch{return false}});const playfulRef=useRef(playful);playfulRef.current=playful;
+ useEffect(()=>{try{sessionStorage.setItem('jtavu-snoopy-playful',String(playful))}catch{}},[playful]);
  const [freeRoam,setFreeRoam]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-free-roam')!=='false'}catch{return true}});
  const [reaction,setReaction]=useState(''),[feedback,setFeedback]=useState('');
  const [dragging,setDragging]=useState(false),[pose,setPose]=useState({walking:false,frame:2,facing:1}),[menu,setMenu]=useState(false),[sleep,setSleep]=useState(false),[speech,setSpeech]=useState(''),[petting,setPetting]=useState(false),[systemReduced,setSystemReduced]=useState(false),[quietMotion,setQuietMotion]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-less-motion')==='true'}catch{return false}}),[size,setSize]=useState(96),[placement,setPlacement]=useState({side:'left',below:true}),[toolView,setToolView]=useState({tool:null,anchor:{x:0,y:0},progress:0});
@@ -288,7 +291,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     // Guiding: he stays put beside the project he is explaining.
     if(r.guiding)return;
     const host=hover.current.host,hovered=host?.isConnected?r.platforms.find(q=>host.contains(q.element)):null,c=cursor.current;
-    const result=decide(agent.current,{now,platformId:p.id,otherPlatforms:r.platforms.filter(q=>q.element!==p.element).length,cursor:{x:c.x,y:c.y,ageMs:now-c.at},snoopy:pos.current,span:{minX,maxX},userIdleMs:now-userAt.current,hover:hovered?{id:hovered.id,ms:now-hover.current.at}:null,size});
+    const result=decide(agent.current,{now,platformId:p.id,otherPlatforms:r.platforms.filter(q=>q.element!==p.element).length,cursor:{x:c.x,y:c.y,ageMs:now-c.at},snoopy:pos.current,span:{minX,maxX},userIdleMs:now-userAt.current,hover:hovered?{id:hovered.id,ms:now-hover.current.at}:null,size,calm:!playfulRef.current});
     agent.current=result.agent;const intent=result.intent;
     if(!intent)return;
     if(r.routine){if(intent.type!=='travel')return;r.routine=null;}
@@ -296,7 +299,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     if(intent.type==='walk'){
      r.walkTo=intent.x-b.left;r.walkSpeed=intent.speed||110;
      // Sometimes a stroll heads for a ledge with something below it.
-     if(Math.random()<.5){
+     if(playfulRef.current&&Math.random()<.5){
       const here=r.platforms.find(q=>q.element===p.element),drop=findDropTarget(r.platforms,here,{size,width:innerWidth});
       if(drop){r.walkTo=drop.edgeX-b.left;r.next={type:'peek',side:drop.side};}
      }
@@ -379,7 +382,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  useEffect(()=>{if(!menu)return;const escape=e=>{if(e.key==='Escape'&&!e.defaultPrevented){e.preventDefault();closeMenu();}};window.addEventListener('keydown',escape);return()=>window.removeEventListener('keydown',escape);},[menu,roam,sleep,reduced]);
  useEffect(()=>{if(!active){leavePerch();stopAction();setMenu(false);setSpeech('');clearTimeout(petTimer.current);setPetting(false);drag.current=null;velocity.current={x:0,y:0};return;}const resize=()=>{stopAction();obstacles(true);setSize(innerWidth<700?80:96);target.current=safePoint(target.current.x,target.current.y);pos.current=safePoint(pos.current.x,pos.current.y)};resize();const hero=document.querySelector('.canvas');if(!initialized.current&&hero?.getBoundingClientRect().bottom>100){const letter=document.querySelector('.canvas h1');const b=letter?.getBoundingClientRect();const p=safePoint(innerWidth*.37,b?b.top+80:innerHeight*.5);pos.current={...p};target.current={...p};}initialized.current=true;userAt.current=performance.now();agent.current=createAgent(performance.now());
  // Arriving from the intro mid-air: carry on from exactly where the swing let go.
- const landing=arrival?.current;if(landing){arrival.current=null;if(living){pos.current={x:landing.x,y:landing.y};target.current={...pos.current};docked.current=false;launch(landing.vx,landing.vy);}}if(!greeted.current&&roam&&!reduced){greeted.current=true;speak('Drag me around. I’ve made myself at home.');react('hello',1100);}window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize)},[active]);
+ const landing=arrival?.current;if(landing){arrival.current=null;if(living){pos.current={x:landing.x,y:landing.y};target.current={...pos.current};docked.current=false;launch(landing.vx,landing.vy);}}if(!greeted.current&&roam&&!reduced){greeted.current=true;if(playfulRef.current){speak('Drag me around. I’ve made myself at home.');react('hello',1100);}}window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize)},[active]);
  // What he can sense: the pointer, a hovered project, and whether anyone is there.
  useEffect(()=>{if(!active)return;
   const touch=()=>{userAt.current=performance.now();if(autoNap.current){autoNap.current=false;agent.current={...agent.current,napping:false,until:performance.now()+900};setSleep(false);speak('Oh, you’re back.');}};
@@ -488,7 +491,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
     const r=resident.current,elapsed=Math.max(8,now-r.scrollAt);r.scrollAt=now;
     r.scrollV=r.scrollV*.6+(delta/Math.min(elapsed,120))*.4;r.scrollDir=Math.sign(delta);r.scrollDist+=Math.abs(delta);
     if(toolAction.current)cancelTool();
-    if(!docked.current&&Math.abs(delta)/elapsed>3.2&&now-r.lastStartle>5000){r.lastStartle=now;react('hello',700);speak('Whoa, slow down!');}
+    if(playfulRef.current&&!docked.current&&Math.abs(delta)/elapsed>3.2&&now-r.lastStartle>5000){r.lastStartle=now;react('hello',700);speak('Whoa, slow down!');}
     return;
    }
    cancelTool();clearTimeout(reactionTimer.current);clearTimeout(petTimer.current);setPetting(false);setReaction('');setSpeech('');
@@ -511,7 +514,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  // A small command surface lets the authored canvas offer the same actions as
  // Snoopy's own menu. Commands never bypass pause, sleep or reduced motion.
  useEffect(()=>{
-  const command=e=>{if(!active)return;const name=e.detail?.command;if(name==='guide'){const r=resident.current,el=document.getElementById(e.detail.target);r.guiding=true;showEmote('!');if(livingRef.current&&el&&!sleep){const here=r.perch?.element;if(!(here&&el.contains(here))){r.prefer=el;r.routine=null;r.walkTo=null;if(docked.current){docked.current=false;}relocate(performance.now(),{nearby:false});}}return;}if(name==='guide-end'){const r=resident.current;if(r.guiding){r.guiding=false;agent.current=settle(agent.current,performance.now(),1200);}return;}if(name==='menu'){opener.current=document.activeElement;stopAction();setMenu(true);menuOpen.current=true;return;}if(name==='camera'||name==='ball'||name==='explore')worldAction(name==='explore'?'inspect':name);};
+  const command=e=>{if(!active)return;const name=e.detail?.command;if(name==='guide'){const r=resident.current,el=document.getElementById(e.detail.target);r.guiding=true;showEmote('!');if(livingRef.current&&el&&!sleep){const here=r.perch?.element;if(!(here&&el.contains(here))){r.prefer=el;r.routine=null;r.walkTo=null;if(docked.current){docked.current=false;}relocate(performance.now(),{nearby:false});}}return;}if(name==='farewell'){const r=resident.current,el=document.getElementById('contact');if(livingRef.current&&el&&!sleep&&!r.guiding){r.prefer=el;r.routine=null;r.walkTo=null;docked.current=false;relocate(performance.now(),{});agent.current=settle(agent.current,performance.now(),6000);setTimeout(()=>{if(!resident.current.guiding&&resident.current.perch){startRoutine('wave',performance.now());speak('That’s the tour. Say hello to John.');}},1300);}return;}if(name==='guide-end'){const r=resident.current;if(r.guiding){r.guiding=false;agent.current=settle(agent.current,performance.now(),1200);}return;}if(name==='menu'){opener.current=document.activeElement;stopAction();setMenu(true);menuOpen.current=true;return;}if(name==='camera'||name==='ball'||name==='explore')worldAction(name==='explore'?'inspect':name);};
   window.addEventListener('jtavu:snoopy-command',command);
   return()=>window.removeEventListener('jtavu:snoopy-command',command);
  },[active,roam,sleep,reduced,size]);
@@ -549,17 +552,18 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  }}if(d&&!d.moved){if(sleep){setSleep(false);speak('Okay, I’m up.')}else toggleMenu()}}} onPointerCancel={()=>{drag.current=null;setDragging(false);pos.current=safePoint(pos.current.x,pos.current.y);velocity.current={x:0,y:0};target.current={...pos.current}}} onClick={e=>{if(e.detail===0){if(sleep){setSleep(false);speak('Okay, I’m up.')}else toggleMenu()}}} onKeyDown={e=>{const v={ArrowLeft:[-60,0],ArrowRight:[60,0],ArrowUp:[0,-60],ArrowDown:[0,60]}[e.key];if(v){e.preventDefault();setMenu(false);if(living)steer(v);else move(target.current.x+v[0],target.current.y+v[1]);}if(e.key==='Escape')setMenu(false)}}><span className="snoopy-performance" data-skill={toolView.tool||undefined} data-phase={toolView.phase||undefined} style={{transform:toolView.performance||(toolView.tool?undefined:pose.transform)||undefined}}><SnoopySprite action={toolView.tool?(toolView.tool==='hop'?toolView.spriteAction:toolView.tool==='dash'?undefined:toolView.tool):pose.kind==='action'?pose.action:undefined} standingFrame={toolView.spriteFrame??2} actionProgress={toolView.progress} frame={sleep?0:pose.frame} walking={!sleep&&pose.walking} standing={!sleep&&!pose.walking&&pose.kind!=='wake'} head={toolView.tool?0:pose.head||0} tail={toolView.tool?0:pose.tail||0} facing={pose.facing}/></span></button>
  </div>
  {menu&&createPortal(<section ref={panel} id="snoopy-menu" className="snoopy-control-panel" role="dialog" aria-modal="false" aria-labelledby="snoopy-panel-title" onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();closeMenu();}}}>
- <div className="snoopy-panel-heading"><div><span className="snoopy-panel-eyebrow">YOUR LITTLE COMPANION</span><h2 id="snoopy-panel-title">Snoopy</h2></div><button className="snoopy-panel-close" aria-label="Close Snoopy controls" onClick={closeMenu}>Close</button></div>
- <p className="snoopy-panel-note" role={feedback?'status':undefined}>{feedback|| (sleep?'A little nap. Wake him whenever you’re ready.':paused?'Taking a breather. Resume Snoopy to try a trick.':reduced?'Keeping things still. Snoopy can still show you the work.':living?'He lives on this page. Pick him up and toss him, or give him something to do.':'A guide, a little mischief, and room to explore.')}</p>
+ <div className="snoopy-panel-heading"><div><span className="snoopy-panel-eyebrow">{playful?'YOUR LITTLE COMPANION':'YOUR HOST'}</span><h2 id="snoopy-panel-title">Snoopy</h2></div><button className="snoopy-panel-close" aria-label="Close Snoopy controls" onClick={closeMenu}>Close</button></div>
+ <p className="snoopy-panel-note" role={feedback?'status':undefined}>{feedback|| (sleep?'A little nap. Wake him whenever you’re ready.':paused?'Taking a breather. Resume Snoopy to try a trick.':reduced?'Keeping things still. Snoopy can still show you the work.':living?(playful?'He lives on this page. Pick him up and toss him, or give him something to do.':'Tap any project and he’ll tell you about it. He keeps to himself otherwise.'):'A guide, a little mischief, and room to explore.')}</p>
  {(paused||sleep)&&<button className="snoopy-resume" onClick={()=>{setSleep(false);setRoam(true);}}>{sleep?'Wake Snoopy':'Resume Snoopy'}</button>}
- <div className="snoopy-main-actions">
+ <button className="snoopy-mode" aria-pressed={playful} onClick={()=>{setPlayful(v=>!v);setFeedback(playful?'Back to a quiet host.':'Playful it is. He’ll roam, hop and show off.');}}><strong>{playful?'Playful Snoopy is on':'Let Snoopy play'}</strong><span>{playful?'Tap to make him a quiet host again':'He’ll roam, do tricks and show off'}</span></button>
+ <div className={`snoopy-main-actions ${playful?'':'is-calm'}`}>
  <button onClick={()=>{setMenu(false);menuOpen.current=false;park();setSleep(false);speak('Right here.');}}><strong>Bring Snoopy here</strong><span>Back beside you, wherever you are</span></button>
  <button aria-label="Show me a project" onClick={showProject}><strong>Show me a project</strong><span>A little tour of John’s work</span></button>
  <button aria-label="Play ball" disabled={!roam||reduced||sleep} onClick={()=>worldAction('ball')}><strong>Play ball</strong><span>Back to the canvas for a quick rally</span></button>
  <button aria-label="Take a photo" disabled={!roam||reduced||sleep} onClick={()=>worldAction('camera')}><strong>Take a photo</strong><span>A camera moment with what’s nearby</span></button>
  </div>
- <div className="snoopy-quick-tricks" aria-label="Snoopy’s little tricks"><span>TRY A LITTLE MISCHIEF</span><div><button disabled={!roam||reduced||sleep} onClick={()=>startMove('hop')}>Hop</button><button disabled={!roam||reduced||sleep} onClick={()=>startMove('dash')}>Zoomies</button><button disabled={!roam||reduced||sleep} onClick={()=>startMove('bow')}>Take a bow</button></div></div>
- <details className="snoopy-extra-tools"><summary>More things to try<span aria-hidden="true">+</span></summary><div>
+ <div className="snoopy-quick-tricks" hidden={!playful} aria-label="Snoopy’s little tricks"><span>TRY A LITTLE MISCHIEF</span><div><button disabled={!roam||reduced||sleep} onClick={()=>startMove('hop')}>Hop</button><button disabled={!roam||reduced||sleep} onClick={()=>startMove('dash')}>Zoomies</button><button disabled={!roam||reduced||sleep} onClick={()=>startMove('bow')}>Take a bow</button></div></div>
+ <details className="snoopy-extra-tools" hidden={!playful}><summary>More things to try<span aria-hidden="true">+</span></summary><div>
  <button disabled={!roam||reduced||sleep} onClick={improvise}>Surprise me</button>
  <button disabled={!roam||reduced||sleep} onClick={dance}>Happy dance</button>
  <button disabled={!roam||reduced||sleep} onClick={()=>startTool('swing')}>Swing down</button>

@@ -29,7 +29,7 @@ export function CursorFx(){
    if(e.pointerType&&e.pointerType!=='mouse')return;
    x=e.clientX;y=e.clientY;
    const next=e.buttons?'':cursorLabel(e.target);
-   if(next!==label){label=next;const r=ring.current;if(r){r.dataset.label=label;r.classList.toggle('has-label',!!label);}}
+   if(next!==label){label=next;const r=ring.current;if(r)r.classList.toggle('is-active',!!label);}
    const src=e.target.closest?.('[data-preview]')?.dataset.preview||'';
    if(src!==shown){shown=src;const p=preview.current;if(p){if(src)p.querySelector('img').src=src;p.classList.toggle('is-on',!!src);}}
    const m=e.target.closest?.(MAGNETIC)||null;

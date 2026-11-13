@@ -11,6 +11,7 @@ const TOPICS={
  Research:{title:'Research',line:n=>`${n} projects that started as a question John wanted answered.`},
 };
 export const topicProjects=topic=>topic==='All'?projectList:projectList.filter(p=>p.tags.includes(topic));
+export const nextProject=id=>projectList[(projectList.findIndex(p=>p.id===id)+1)%projectList.length].id;
 export const projectNumber=id=>String(projectList.findIndex(p=>p.id===id)+1).padStart(2,'0');
 
 /** What the card says for a project or topic. Pure, so it can be tested. */
@@ -67,7 +68,7 @@ export function SnoopyGuide({guide,onClose,onOpenProject,onBrief,onGoTo,focusOnO
   {content.kind==='project'?<>
    <p className="guide-meta"><span className="project-status">{content.status}</span>{content.role}</p>
    <dl>{content.facts.map(([label,text])=><div key={label}><dt>{label}</dt><dd>{text}</dd></div>)}</dl>
-   <div className="guide-actions"><button className="guide-primary" onClick={()=>onOpenProject(content.id)}>Full story</button><button onClick={()=>onGoTo(content.id)}>Take me there</button><a href={content.url} target="_blank" rel="noreferrer">Visit ↗</a></div>
+   <div className="guide-actions"><button className="guide-primary" onClick={()=>onOpenProject(content.id)}>Full story</button><button onClick={()=>onGoTo(content.id)}>Take me there</button><a href={content.url} target="_blank" rel="noreferrer">Visit ↗</a><button className="guide-next" data-guide-trigger onClick={()=>onBrief('project',nextProject(content.id))}>Next →</button></div>
   </>:<>
    <p className="guide-line">{content.line}</p>
    <div className="guide-chips">{content.projects.map(p=><button key={p.id} data-guide-trigger onClick={()=>onBrief('project',p.id)}><i>{projectNumber(p.id)}</i>{p.title}</button>)}</div>

@@ -8,13 +8,15 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 export const MOODS=Object.freeze({
  tired:{lieDown:4,sit:3,lookAround:2,sniff:1},
  calm:{sit:3,lookAround:2,sniff:2,curious:3,happyWag:2,lieDown:1,playBow:1},
+ // The default: a well-mannered host. He settles, watches and looks around.
+ host:{sit:4,lieDown:3,lookAround:3,curious:3,happyWag:1,sniff:1},
  playful:{cheer:3,playBow:3,chaseTail:2,happyWag:3,curious:2,sniff:1,lookAround:1,sit:1},
 });
 export const moodFor=energy=>energy<.35?'tired':energy<.7?'calm':'playful';
 
 /** Weighted choice that skips the last two routines, so he rarely repeats himself. */
-export function pickRoutine(energy,recent=[],random=Math.random){
- const table=MOODS[moodFor(energy)];
+export function pickRoutine(energy,recent=[],random=Math.random,calm=false){
+ const table=calm?MOODS.host:MOODS[moodFor(energy)];
  let entries=Object.entries(table).filter(([name])=>!recent.slice(-2).includes(name));
  if(!entries.length)entries=Object.entries(table);
  const total=entries.reduce((sum,[,w])=>sum+w,0);
@@ -57,7 +59,9 @@ export function rememberVisit(agent,id){
  * busy or resting. `random` is injected so the choice is testable.
  */
 export function decide(agent,senses,random=Math.random){
- const {now,platformId,otherPlatforms=0,cursor=null,snoopy,span,userIdleMs=0,hover=null,size=96}=senses;
+ const {now,platformId,otherPlatforms=0,cursor=null,snoopy,span,userIdleMs=0,hover=null,size=96,calm=false}=senses;
+ // Calm, he rests three times as long between actions.
+ const pace=calm?3:1;
  if(agent.napping){
   if(userIdleMs<AGENT_TIMING.wakeWithin)return {agent:{...agent,napping:false,until:now+900},intent:{type:'wake'}};
   return {agent,intent:null};
@@ -75,22 +79,24 @@ export function decide(agent,senses,random=Math.random){
    return {agent:{...remember(agent,'wave'),wavedAt:now,until:Infinity},intent:{type:'routine',name:'wave',facing}};
   if(Math.abs(dx)>size*.95){
    const x=clamp(cursor.x-Math.sign(dx)*size*.75,span.minX,span.maxX);
-   if(Math.abs(x-snoopy.x)>6)return {agent:settle(agent,now,700),intent:{type:'walk',x,reason:'cursor'}};
+   if(!calm&&Math.abs(x-snoopy.x)>6)return {agent:settle(agent,now,700),intent:{type:'walk',x,reason:'cursor'}};
   }
-  if(random()<.2&&agent.energy>.5)return {agent:{...remember(agent,'playBow'),until:Infinity},intent:{type:'routine',name:'playBow',facing}};
-  return {agent:settle(agent,now,1200),intent:{type:'watch',facing}};
+  if(!calm&&random()<.2&&agent.energy>.5)return {agent:{...remember(agent,'playBow'),until:Infinity},intent:{type:'routine',name:'playBow',facing}};
+  return {agent:settle(agent,now,1200*pace),intent:{type:'watch',facing}};
  }
  const roll=random();
- if(otherPlatforms>0&&(agent.curiosity>=1||roll<agent.curiosity*.45))
-  return {agent:settle(agent,now,2200),intent:{type:'travel',reason:'curious'}};
- if(roll<.4&&span.maxX-span.minX>size*.5){
+ if(otherPlatforms>0&&(calm?agent.curiosity>=1&&roll<.25:agent.curiosity>=1||roll<agent.curiosity*.45))
+  return {agent:settle(agent,now,2200*pace),intent:{type:'travel',reason:'curious'}};
+ if(roll<(calm?.18:.4)&&span.maxX-span.minX>size*.5){
   const x=span.minX+(span.maxX-span.minX)*random();
   // Walking pace varies with mood: a sniffing amble, a walk, or a trot.
-  const trot=agent.energy>.6&&random()<.35,speed=trot?175:moodFor(agent.energy)==='tired'?65:85+random()*35;
-  if(Math.abs(x-snoopy.x)>size*.3)return {agent:settle(agent,now,1200+random()*1600),intent:{type:'walk',x,speed,reason:trot?'trot':'stroll'}};
+  const trot=!calm&&agent.energy>.6&&random()<.35,speed=trot?175:moodFor(agent.energy)==='tired'?65:85+random()*35;
+  if(Math.abs(x-snoopy.x)>size*.3)return {agent:settle(agent,now,1200+random()*1600),intent:{type:'walk',x,speed:calm?Math.min(speed,80):speed,reason:trot?'trot':'stroll'}};
  }
- if(roll>.92&&agent.energy>.4)return {agent:settle(agent,now,1800),intent:{type:'hop'}};
- const name=pickRoutine(agent.energy,agent.recent,random);
+ // Between quiet routines the host simply stands and watches for a while.
+ if(calm&&roll>.55)return {agent:settle(agent,now,3500+random()*4000),intent:{type:'watch',facing:random()<.5?-1:1}};
+ if(!calm&&roll>.92&&agent.energy>.4)return {agent:settle(agent,now,1800),intent:{type:'hop'}};
+ const name=pickRoutine(agent.energy,agent.recent,random,calm);
  // `until` stays open while the routine plays; the page settles him afterwards.
  return {agent:{...remember(agent,name),until:Infinity},intent:{type:'routine',name}};
 }
