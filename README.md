@@ -26,7 +26,7 @@ Build first: the packaging tests check the generated output. The build compiles 
 
 Use the Snoopy header button for controls. Drag the character to reposition him. Quick tricks include Hop, Zoomies, and Take a bow. The bow articulates his torso, neck, and paws while keeping his feet planted. Additional actions include a project guide, ball play, camera framing, ladder, rope swing, and helping reveal a real project addition.
 
-Downward scrolling parks him visibly beside the page. Upward scrolling can pass him before a return after three quiet seconds. Direct interaction interrupts performances; pause, nap, keyboard controls, and reduced-motion preferences remain available.
+By default he lives on the page: he stands on headings, project images and canvas props, rides them as you scroll, strolls, hops between surfaces, follows a nearby cursor, visits a project you linger on, and naps when you go idle. If his surface scrolls away he waits in the corner dock and hops back on once the page is quiet. "Keep Snoopy in his corner" in his panel restores the earlier dock-only behavior. Direct interaction interrupts performances; pause, nap, keyboard controls, and reduced-motion preferences remain available.
 
 These are authored character behaviors, not an AI or self-learning system. The character’s animation and broader playground experience remain in development. See `AGENTS.md` for current design constraints and `design-qa.md` for verification history.
 
