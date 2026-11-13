@@ -113,7 +113,6 @@ p{font-weight:600}
 .snoopy-guide dl,.snoopy-guide dl div{border-color:var(--ink)}
 .snoopy-guide dl div{border-bottom-style:dashed;border-bottom-width:2px}.snoopy-guide dl{border-top:2px dashed var(--ink)}
 .guide-close{font-weight:800;color:var(--ink)}
-.cursor-ring{border:2px solid var(--ink)}.cursor-ring.is-active{background:#ffd23f55;border-color:var(--ink)}
 .cursor-preview{border:var(--line);box-shadow:var(--pop)}
 .snoopy-control-panel{border:var(--line)!important;box-shadow:8px 8px 0 var(--ink)!important;border-radius:18px!important}
 
@@ -150,3 +149,30 @@ dialog .close,dialog .visit{border:2.5px solid var(--ink);border-radius:10px;bac
 @media(prefers-reduced-motion:reduce){.reveal{transform:none}}
 @media(max-width:700px){.canvas.hero-v2{--base:104px;height:730px;min-height:730px}.hero-v2 .controls p{display:none}.hero-v2 .camera{width:20cqw}.hero-v2 .chrome{width:18cqw}}
 @media(max-width:700px){.hero-v2 .sunset{bottom:calc(var(--top) + 2cqw)}.hero-v2 .ball{bottom:calc(var(--top) + 1cqw)}.hero-v2 .camera,.hero-v2 .chrome{bottom:calc(var(--base) - 4px)}}
+
+/* Animated pixel cursor (CursorFx). Replaces the system cursor for mouse users only. */
+html.fx-cursor,html.fx-cursor *{cursor:none!important}
+html.fx-cursor input,html.fx-cursor textarea,html.fx-cursor [contenteditable="true"]{cursor:text!important}
+.cursor-pixel{position:fixed;left:0;top:0;z-index:210;pointer-events:none;opacity:0;transition:opacity .15s;will-change:transform}
+.cursor-pixel.is-on{opacity:1}
+html.fx-cursor-text .cursor-pixel{opacity:0}
+.cursor-body{display:block;transform-origin:1px 1px;transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
+.cursor-arrow{display:block;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #14141433)}
+.cursor-arrow .px-o{fill:var(--ink,#141414)}
+.cursor-arrow .px-x{fill:var(--paper,#fffcf4);transition:fill .15s}
+.cursor-arrow .px-w{fill:#fff}
+.cursor-pixel.is-idle .cursor-body{animation:cursor-bob 1.2s steps(4,end) infinite}
+.cursor-pixel[data-mode=point] .px-x{fill:var(--sun,#ffd23f)}
+.cursor-pixel[data-mode=point] .cursor-body{transform:rotate(-14deg) scale(1.08);animation:cursor-nudge .9s steps(3,end) infinite}
+.cursor-pixel[data-mode=grab] .px-x{fill:var(--accent,#d7301f)}
+.cursor-pixel[data-mode=grab] .px-w{fill:#ff9b8c}
+.cursor-pixel[data-mode=grab] .cursor-body{animation:cursor-wiggle .5s steps(2,end) infinite}
+.cursor-pixel.is-down .cursor-body{transform:scale(.8,.72) rotate(-6deg);animation:none}
+.cursor-trail{position:fixed;left:-3px;top:-3px;z-index:209;width:calc(7px - var(--n)*1px);height:calc(7px - var(--n)*1px);background:var(--accent,#d7301f);border:1px solid var(--ink,#141414);pointer-events:none;opacity:0;will-change:transform,opacity}
+.cursor-trail:nth-child(2n){background:var(--sun,#ffd23f)}
+.cursor-sparks{position:fixed;inset:0;z-index:211;pointer-events:none}
+.cursor-spark{position:fixed;display:block;pointer-events:none}
+@keyframes cursor-bob{50%{transform:translateY(-3px) rotate(-4deg)}}
+@keyframes cursor-nudge{0%,100%{transform:rotate(-14deg) scale(1.08)}50%{transform:rotate(-14deg) scale(1.08) translate(-2px,-2px)}}
+@keyframes cursor-wiggle{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@media(prefers-reduced-motion:reduce){html.fx-cursor,html.fx-cursor *{cursor:auto!important}.cursor-pixel,.cursor-trail{display:none}}

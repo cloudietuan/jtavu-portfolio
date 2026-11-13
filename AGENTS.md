@@ -139,3 +139,6 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Snoopy is playful by default again (jtavu-snoopy-playful defaults on); the quiet host is the opt-out in his panel.
 - Matching pixels: SnoopySprite redraws every pose on one shared 96-cell pixel grid with one palette (ink, cream, collar red), so the walk, wake and action sheets render identically. This re-samples existing art only.
 - New routines from existing poses: nod, head shake, dance, stretch, spin.
+
+## Animated pixel cursor, 12 November: supersedes the cursor ring
+- User asked to remove the circle around the cursor and use an animated cursor instead. CursorFx.jsx now hides the system cursor for mouse users and draws an original 12 x 17 pixel arrow (ink outline, cream fill) that follows the pointer directly with no lag. States: yellow fill and a tilt over links and buttons, red fill and a wiggle over draggable things (canvas props, Snoopy, the blind's pull tab), a squash plus a burst of red, yellow and ink pixel sparks on click, a short pixel trail when moving fast, and a gentle bob after 2 seconds still. Text fields keep the text cursor. Touch screens and reduced motion keep the normal system cursor. No cursor ring anywhere.
