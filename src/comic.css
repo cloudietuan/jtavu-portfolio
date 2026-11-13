@@ -151,6 +151,9 @@ dialog .close,dialog .visit{border:2.5px solid var(--ink);border-radius:10px;bac
 @media(max-width:700px){.hero-v2 .sunset{bottom:calc(var(--top) + 2cqw)}.hero-v2 .ball{bottom:calc(var(--top) + 1cqw)}.hero-v2 .camera,.hero-v2 .chrome{bottom:calc(var(--base) - 4px)}}
 
 /* Animated pixel cursor (CursorFx). Replaces the system cursor for mouse users only. */
+.cursor-layer{position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:none;overflow:visible;pointer-events:none;color:inherit}
+.cursor-layer:not(:popover-open){display:block}
+html.fx-cursor-off,html.fx-cursor-off *{cursor:auto!important}html.fx-cursor-off .cursor-pixel,html.fx-cursor-off .cursor-trail{display:none}
 html.fx-cursor,html.fx-cursor *{cursor:none!important}
 html.fx-cursor input,html.fx-cursor textarea,html.fx-cursor [contenteditable="true"]{cursor:text!important}
 .cursor-pixel{position:fixed;left:0;top:0;z-index:210;pointer-events:none;opacity:0;transition:opacity .15s;will-change:transform}

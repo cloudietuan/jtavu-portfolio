@@ -50,11 +50,20 @@ function Arrow(){
 const SPARK_COLORS=['var(--ink,#141414)','var(--accent,#d7301f)','var(--sun,#ffd23f)'];
 
 export function CursorFx(){
- const pointer=useRef(null),preview=useRef(null),trail=useRef([]),sparks=useRef(null);
+ const layer=useRef(null),pointer=useRef(null),preview=useRef(null),trail=useRef([]),sparks=useRef(null);
  const [enabled]=useState(()=>matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches);
  useEffect(()=>{
   if(!enabled)return;
   const root=document.documentElement;
+  // Modal dialogs live in the browser's top layer, above every z-index. The
+  // cursor joins the top layer too (popover) and re-raises itself whenever a
+  // dialog opens, so it is never buried. Without popover support the system
+  // cursor comes back while a dialog is open.
+  const top=layer.current,canPop=!!top?.showPopover;
+  const raise=()=>{if(!canPop)return false;try{if(top.matches(':popover-open'))top.hidePopover();top.showPopover();return true;}catch{return false}};
+  const dialogs=()=>{const open=!!document.querySelector('dialog[open]');root.classList.toggle('fx-cursor-off',open&&!raise());};
+  raise();
+  const watch=new MutationObserver(dialogs);watch.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
   let x=-100,y=-100,px=-100,py=-100,id,mode='',magnet=null,shown='',still,last=performance.now();
   const dots=trail.current.map(()=>({x:-100,y:-100}));
   const setMode=next=>{if(next===mode)return;mode=next;const p=pointer.current;if(p)p.dataset.mode=mode||'arrow';root.classList.toggle('fx-cursor-text',mode==='text');};
@@ -105,13 +114,13 @@ export function CursorFx(){
   window.addEventListener('blur',leave);
   root.addEventListener('pointerleave',leave);
   id=requestAnimationFrame(tick);
-  return()=>{cancelAnimationFrame(id);clearTimeout(still);root.classList.remove('fx-cursor','fx-cursor-text');window.removeEventListener('pointermove',move);window.removeEventListener('pointerdown',down);window.removeEventListener('pointerup',up);window.removeEventListener('blur',leave);root.removeEventListener('pointerleave',leave);if(magnet)magnet.style.translate='';};
+  return()=>{watch.disconnect();if(canPop&&top.matches(':popover-open'))try{top.hidePopover()}catch{};root.classList.remove('fx-cursor-off');cancelAnimationFrame(id);clearTimeout(still);root.classList.remove('fx-cursor','fx-cursor-text');window.removeEventListener('pointermove',move);window.removeEventListener('pointerdown',down);window.removeEventListener('pointerup',up);window.removeEventListener('blur',leave);root.removeEventListener('pointerleave',leave);if(magnet)magnet.style.translate='';};
  },[enabled]);
  if(!enabled)return null;
- return <>
+ return <div ref={layer} className="cursor-layer" popover="manual" aria-hidden="true">
   {[0,1,2,3].map(i=><i key={i} ref={el=>{trail.current[i]=el;}} className="cursor-trail" style={{'--n':i}} aria-hidden="true"/>)}
   <div ref={pointer} className="cursor-pixel" data-mode="arrow" aria-hidden="true"><span className="cursor-body"><Arrow/></span></div>
   <div ref={sparks} className="cursor-sparks" aria-hidden="true"/>
   <div ref={preview} className="cursor-preview" aria-hidden="true"><img alt=""/></div>
- </>;
+ </div>;
 }
