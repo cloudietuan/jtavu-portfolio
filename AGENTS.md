@@ -189,3 +189,11 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 - John disliked the highlight and service card hover. Removed the action-line burst, the glare sweep and the pointer-driven 3D tilt (the tilt `useEffect` in `ScrollPortfolio.jsx` is gone).
 - Hover is now a plain comic lift: the card nudges up and left and its ink shadow deepens. Reduced motion keeps the shadow change only.
+
+## A page for every activity, 13 November
+- User wants a page for each activity and nothing linking back to jtavu.com. Every Experience item now has its own comic page at #/a/<slug> (src/activities.js builds the list and slugs from experience.js; src/ActivityPage.jsx renders it): a dotted cover with the group tag and burst, the name, a role and date caption and the item's badge as a starburst; the story as comic panels, one per sentence; AZSEF-style chips as "The scoreboard"; the related project (from a #project-x link) with its screenshot and a link into Work; outside links (Bayu site, Instagram, Sunset Nails site, Paletté email); "More in <group>"; and Previous and Next pages that wrap around. Content is only what experience.js and projects.js already say.
+- A résumé page at #/resume lists every group and role, links each to its page, and prints cleanly (Print or save as PDF). The contact Résumé link and the jump menu's résumé go there.
+- Experience items link their name and a "Read the story" link to their page. The jump menu has an Activities group. Header nav, Canvas and Go to commands from a page return to the main site and scroll to the section; browser Back works.
+- Removed every jtavu.com link: Golden Summit highlight goes to its page, Hinksey links to the Sunset Nails project, Sunset's supporting research goes to the Hinksey page, Maryvale's goes to the AP Research page, OncoSync's roadmap link is gone, and the dialog fallback goes to Experience. tests/activity-pages.test.mjs fails if a jtavu.com link comes back.
+- The old site-wide h1 and header rules (giant tilted CREATOR, 75px flex header) are reset inside .activity-page.
+- JTAVU Apparel still links to its own site, jtavu.lovable.app; ask before changing that.

@@ -1,11 +1,12 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {projectList} from './projects';
+import {activityList,activityHref} from './activities.js';
 
 // A comic-style jump menu. K (or Cmd/Ctrl+K, or the header button) opens it;
 // type to filter, arrows to move, Enter to go, Escape to close.
 
 const snoopy=(routine,say)=>()=>window.dispatchEvent(new CustomEvent('jtavu:snoopy-command',{detail:{command:'routine',routine,say}}));
-const jump=id=>()=>document.getElementById(id)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+const jump=id=>()=>{const el=document.getElementById(id);if(!el){location.hash=`#${id}`;return;}el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});};
 const open=url=>()=>{const a=document.createElement('a');a.href=url;if(url.startsWith('http')){a.target='_blank';a.rel='noreferrer';}a.click();};
 
 // Calls back once the page has held still for a moment (or after 2 seconds).
@@ -17,7 +18,7 @@ function whenScrollSettles(done){
 export function buildCommands(projects=projectList){
  return [
   ...projects.map(p=>({id:`project-${p.id}`,group:'Projects',title:`Show me ${p.title}`,hint:p.tags.join(' / '),keys:`${p.title} ${p.tags.join(' ')} project`,run:()=>{
-   const el=document.getElementById(`project-${p.id}`);if(!el)return;
+   const el=document.getElementById(`project-${p.id}`);if(!el){location.hash=`#project-${p.id}`;return;}
    const behavior=matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
    // Lazy images above the project load during the scroll and push it down,
    // so re-aim until it is really on screen (up to three times).
@@ -28,6 +29,7 @@ export function buildCommands(projects=projectList){
     el.querySelector('[data-guide-trigger]')?.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,detail:1}));});};
    aim(0);
   }})),
+  ...activityList.map(a=>({id:`activity-${a.slug}`,group:'Activities',title:a.name,hint:a.role,keys:`${a.name} ${a.role} ${a.group} activity story`,run:()=>{location.hash=activityHref(a.slug);}})),
   {id:'go-highlights',group:'Go to',title:'Highlights',hint:'the short version',keys:'best awards isef',run:jump('highlights')},
   {id:'go-work',group:'Go to',title:'Work',hint:'things I’ve built',keys:'projects portfolio',run:jump('work')},
   {id:'go-offer',group:'Go to',title:'What I can do for you',hint:'services',keys:'hire offer help build',run:jump('offer')},
@@ -36,7 +38,7 @@ export function buildCommands(projects=projectList){
   {id:'go-top',group:'Go to',title:'Back to the top',hint:'CREATOR',keys:'home canvas top start',run:jump('top')},
   {id:'email',group:'Say hi',title:'Email John',hint:'cloudietuan@gmail.com',keys:'contact hire mail hello',run:open('mailto:cloudietuan@gmail.com')},
   {id:'linkedin',group:'Say hi',title:'Open LinkedIn',hint:'linkedin.com/in/jtavu',keys:'experience profile',run:open('https://www.linkedin.com/in/jtavu')},
-  {id:'resume',group:'Say hi',title:'Open résumé',hint:'jtavu.com/resume',keys:'resume cv',run:open('https://jtavu.com/resume')},
+  {id:'resume',group:'Say hi',title:'Open résumé',hint:'every role on one page',keys:'resume cv',run:()=>{location.hash='#/resume';}},
   {id:'dance',group:'Snoopy',title:'Make Snoopy dance',hint:'♪',keys:'party fun music',run:snoopy('dance','♪ ♪ ♪')},
   {id:'spin',group:'Snoopy',title:'Snoopy, spin!',hint:'whee',keys:'turn trick',run:snoopy('spin','wheee')},
   {id:'wave',group:'Snoopy',title:'Wave hello',hint:'hi!',keys:'greet hi',run:snoopy('wave','hi!')},

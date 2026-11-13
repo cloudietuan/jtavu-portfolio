@@ -451,3 +451,83 @@ body{font-weight:400}
 .highlight-card:hover,.highlight-card.is-tilting:hover{transform:translate(-4px,-6px);box-shadow:10px 12px 0 var(--ink)}
 .offer-card:hover,.offer-card.is-tilting:hover{transform:translate(-3px,-4px);box-shadow:8px 9px 0 var(--ink)}
 @media(prefers-reduced-motion:reduce){.highlight-card:hover,.offer-card:hover{transform:none}}
+
+/* Activity pages, 13 November: one comic issue per activity at #/a/<slug>, plus #/resume. */
+.activity-page{--tone:var(--paper);max-width:1080px;margin:0 auto;padding:110px 28px 80px;font-family:var(--f-body);color:var(--ink)}
+.activity-page.tone-sun{--tone:var(--sun)}.activity-page.tone-sky{--tone:var(--sky)}.activity-page.tone-red{--tone:#ffb4a8}
+.activity-page h1:focus{outline:none}
+.act-crumbs{display:flex;align-items:center;gap:12px;font:400 15px/1 var(--f-hand);margin-bottom:22px}
+.act-crumbs a{color:var(--ink);background:#fff;border:var(--line);border-radius:999px;padding:8px 14px;box-shadow:3px 3px 0 var(--ink);text-decoration:none}
+.act-crumbs a:hover{translate:-1px -2px;box-shadow:4px 5px 0 var(--ink)}
+.act-cover{position:relative;background:var(--tone);border:var(--line);box-shadow:8px 9px 0 var(--ink);padding:36px 36px 30px;background-image:radial-gradient(#14141422 1.4px,transparent 1.5px);background-size:13px 13px;animation:act-slam .5s cubic-bezier(.3,1.5,.5,1) both}
+.act-kicker{display:flex;align-items:center;gap:12px;margin:0 0 6px}
+.act-tag{display:inline-block;font:400 15px/1 var(--f-hand);background:#fff;border:2.5px solid var(--ink);padding:5px 10px;rotate:-2deg;box-shadow:2px 2px 0 var(--ink)}
+.act-cover .pow-sm{margin:0}
+.act-cover h1{font:400 clamp(44px,8vw,96px)/.95 var(--f-title);margin:6px 0 16px;text-shadow:4px 4px 0 #fff;letter-spacing:.01em;max-width:13ch}
+.act-caption{display:inline-flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--sun);border:2.5px solid var(--ink);padding:8px 14px;margin:0;font-size:17px;rotate:-1deg}
+.tone-sun .act-caption{background:#fff}
+.act-caption span{font-family:var(--f-hand);font-size:16px}
+.act-badge{position:absolute;right:28px;top:-22px;display:grid;place-items:center;min-width:110px;height:110px;padding:0 10px;font:400 26px/1 var(--f-mega);background:var(--accent);color:#fff;text-shadow:2px 2px 0 var(--ink);clip-path:polygon(50% 0,61% 22%,85% 8%,78% 33%,100% 40%,80% 55%,96% 78%,70% 74%,62% 100%,48% 80%,30% 98%,28% 74%,3% 82%,18% 58%,0 40%,22% 32%,12% 8%,38% 22%);filter:drop-shadow(4px 4px 0 var(--ink));rotate:8deg;animation:act-pop .6s .25s cubic-bezier(.3,1.6,.5,1) both}
+.act-strip{list-style:none;margin:34px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.act-panel{position:relative;background:#fff;border:var(--line);box-shadow:5px 6px 0 var(--ink);padding:34px 20px 20px;min-height:150px;font-size:18px;font-weight:700;line-height:1.45;rotate:calc((var(--i) - 1) * .6deg);animation:act-slam .45s calc(.12s + var(--i) * .09s) cubic-bezier(.3,1.5,.5,1) both}
+.act-panel:first-child{background:var(--tone)}
+.act-panel p{margin:0}
+.act-panel-caption{position:absolute;left:-3px;top:-3px;background:var(--sun);border:2.5px solid var(--ink);padding:4px 10px;font:400 15px/1 var(--f-hand)}
+.act-panel:first-child .act-panel-caption{background:#fff}
+.activity-page section h2{font:400 clamp(28px,4vw,40px)/1 var(--f-mega);letter-spacing:.03em;margin:0 0 14px}
+.act-stats,.act-links,.act-more{margin-top:44px}
+.act-stats ul,.act-more ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}
+.act-stats li{background:var(--sun);border:var(--line);padding:10px 16px;font-weight:700;box-shadow:3px 3px 0 var(--ink);rotate:-1.5deg}
+.act-stats li:nth-child(2n){background:var(--sky);rotate:1.5deg}
+.act-project{margin-top:44px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:26px;align-items:center;background:#fff;border:var(--line);box-shadow:7px 8px 0 var(--ink);padding:22px}
+.act-project img{width:100%;border:var(--line);display:block;background:var(--paper)}
+.act-project h2{margin-top:10px!important}
+.act-project p{font-size:17px;line-height:1.5}
+.act-links p{display:flex;flex-wrap:wrap;gap:12px;margin:0}
+.act-link{background:var(--accent);color:#fff;border:var(--line);padding:11px 18px;font-weight:700;text-decoration:none;box-shadow:4px 4px 0 var(--ink)}
+.act-link:hover{translate:-2px -3px;box-shadow:6px 7px 0 var(--ink)}
+.act-more a{display:flex;flex-direction:column;gap:3px;background:#fff;border:var(--line);padding:12px 16px;color:var(--ink);text-decoration:none;box-shadow:3px 3px 0 var(--ink);transition:translate .15s,box-shadow .15s}
+.act-more a b{font-family:var(--f-title);font-weight:400;font-size:18px}
+.act-more a span{font-family:var(--f-hand);font-size:15px}
+.act-more a:hover{translate:-2px -3px;box-shadow:5px 6px 0 var(--ink);background:var(--tone)}
+.act-pager{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:56px}
+.act-pager a{display:flex;flex-direction:column;gap:6px;border:var(--line);background:var(--ink);color:#fff;padding:18px 22px;text-decoration:none;box-shadow:5px 5px 0 var(--accent)}
+.act-pager a[rel=next]{text-align:right;background:var(--accent);box-shadow:5px 5px 0 var(--ink)}
+.act-pager span{font:400 16px/1 var(--f-hand)}
+.act-pager b{font:400 24px/1.05 var(--f-title)}
+.act-pager a:hover{translate:-2px -3px}
+.act-print{font:400 15px/1 var(--f-hand);background:var(--sun);border:var(--line);padding:8px 14px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;margin-left:auto}
+.resume-head h1{max-width:none}
+.resume-contact{display:flex;flex-wrap:wrap;gap:16px;margin:16px 0 0;font-weight:700}
+.resume-contact a{color:var(--ink)}
+.resume-group{margin-top:40px}
+.resume-group ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.resume-group li{background:#fff;border:var(--line);padding:14px 18px;box-shadow:3px 3px 0 var(--ink)}
+.resume-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.resume-top a{color:var(--ink);font-family:var(--f-title);font-size:19px;text-decoration:none}
+.resume-top a b{font-weight:400}
+.resume-top span{font-family:var(--f-hand);white-space:nowrap}
+.resume-group em{color:var(--accent);font-style:normal;font-weight:700}
+.resume-group p{margin:6px 0 0;line-height:1.5}
+.exp-links .exp-story{font-weight:700}
+@keyframes act-slam{from{opacity:0;transform:scale(.92) translateY(14px)}to{opacity:1;transform:none}}
+@keyframes act-pop{from{opacity:0;transform:scale(.3) rotate(-30deg)}to{opacity:1;transform:none}}
+@media (max-width:700px){
+ .activity-page{padding:88px 16px 56px}
+ .act-cover{padding:26px 20px 22px;box-shadow:5px 6px 0 var(--ink)}
+ .act-badge{min-width:84px;height:84px;font-size:20px;right:12px;top:-30px}
+ .act-project{grid-template-columns:1fr}
+ .act-pager{grid-template-columns:1fr}
+ .act-pager b{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){.act-cover,.act-panel,.act-badge{animation:none}}
+@media print{
+ .site-header,.site-footer,.act-crumbs,.snoopy-companion,.cursor-layer,[class*="snoopy"]{display:none!important}
+ .activity-page{padding:0}
+ .act-cover,.resume-group li{box-shadow:none;animation:none;background-image:none}
+}
+/* The site-wide h1 is the giant tilted CREATOR word; activity pages need a normal title. */
+.activity-page h1{position:static;left:auto;top:auto;width:auto;transform:none;white-space:normal;letter-spacing:.01em;pointer-events:auto}
+.activity-page h2{font-style:normal}
+/* The old site-wide header rule (flex row, 75px tall) must not touch the cover. */
+.activity-page header.act-cover{display:block;height:auto;gap:0;font-size:inherit;justify-content:normal;z-index:1}

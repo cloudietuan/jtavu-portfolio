@@ -7,7 +7,7 @@ export const highlights=[
  {title:'ISEF Finalist',line:'Made it to Regeneron ISEF in 2026 after placing first in Arizona with a solar panel tracking system.',tone:'sun',link:{label:'See my research tool',href:'#project-oncosync'}},
  {title:'Eight years in a family business',line:'Brand and operations for my family’s six-person nail salon in Mesa, Arizona, since 2018.',tone:'red',link:{label:'Sunset Nails',href:'#project-sunset'}},
  {title:'Co-founder, Bayu Consulting',line:'Helping local businesses get found online, from strategy to the client call.',tone:'sky',link:{label:'Visit the site',href:'https://bayuconsulting.lovable.app/'}},
- {title:'Golden Summit Career Day',line:'Helped run a career day for 200+ students with 15+ professionals from places like Honeywell, Vanguard and ASU.',tone:'paper',link:{label:'See the event',href:'https://jtavu.com/golden-summit'}},
+ {title:'Golden Summit Career Day',line:'Helped run a career day for 200+ students with 15+ professionals from places like Honeywell, Vanguard and ASU.',tone:'paper',link:{label:'See the event',href:'#/a/golden-summit-career-day'}},
 ];
 
 // What John can do for someone, each backed by real work.
@@ -29,7 +29,7 @@ export const experience=[
  ]},
  {title:'Business',burst:'KA-CHING!',items:[
   {name:'Sunset Nails',role:'Brand and Operations Lead',when:'2018 to now',line:'Help run my family’s six-person salon in Mesa, Arizona, and build its brand and online presence.',url:'https://sunsetnails.shop',links:[{label:'Website',href:'https://sunsetnails.shop'},{label:'Case study',href:'#project-sunset'}]},
-  {name:'Hinksey Labs',role:'Business Development Researcher',when:'Mar 2026',line:'Studied how the salon could bring in new customers and keep them, using an in-store survey, competitor benchmarking and Yelp reviews. The paper is being revised for The Hinksey Review.',links:[{label:'Supporting research',href:'https://jtavu.com/work'}]},
+  {name:'Hinksey Labs',role:'Business Development Researcher',when:'Mar 2026',line:'Studied how the salon could bring in new customers and keep them, using an in-store survey, competitor benchmarking and Yelp reviews. The paper is being revised for The Hinksey Review.',links:[{label:'The salon it studied',href:'#project-sunset'}]},
  ]},
  {title:'Research and awards',burst:'WIN!',items:[
   {name:'Regeneron ISEF',role:'Finalist',when:'May 2026',badge:'FINALIST',line:'Made it to the world’s biggest high school science fair after taking first in Arizona. Our team’s solar tracker uses four small sensor panels to follow the sun in any direction, so panels stop losing energy to a fixed angle.',links:[{label:'Science Fair Club',href:'#project-science'}]},
@@ -40,7 +40,7 @@ export const experience=[
   {name:'University of Arizona',role:'$40,000 scholarship',when:'2025',badge:'$40K',line:'Awarded for my science fair record.'},
  ]},
  {title:'Leadership and service',burst:'BAM!',items:[
-  {name:'Golden Summit Career Day',role:'Lead organizer',when:'Nov 2025',badge:'200+',line:'A full-day career event for 200+ students, run by a five-student committee. We brought in 15+ professionals from places like Honeywell, Banner Health, Vanguard, AECOM and ASU, ran sessions across nine fields plus mock interviews, and collected feedback from 188 attendees.',links:[{label:'Event page',href:'https://jtavu.com/golden-summit'}]},
+  {name:'Golden Summit Career Day',role:'Lead organizer',when:'Nov 2025',badge:'200+',line:'A full-day career event for 200+ students, run by a five-student committee. We brought in 15+ professionals from places like Honeywell, Banner Health, Vanguard, AECOM and ASU, ran sessions across nine fields plus mock interviews, and collected feedback from 188 attendees.'},
   {name:'Science Fair Club',role:'Founder',when:'',badge:'400',line:'Started the club and grew it to 400 members, with a portal of templates, schedules and ISEF guidance.',links:[{label:'See the portal',href:'#project-science'}]},
   {name:'Business Club, GCA',role:'Co-founder',when:'2023 to 2024',line:'Co-founded the school’s business club.'},
   {name:'Hospital food outreach, Vietnam',role:'Volunteer',when:'2023 to 2025',badge:'90+ HRS',line:'Brought meals and supplies to hospital patients, and helped a program in Vinh for patients and orphaned children with autism. Started a documentary about the people these programs serve.'},
