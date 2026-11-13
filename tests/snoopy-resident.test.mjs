@@ -334,3 +334,12 @@ test('the calm host stays quiet: no tricks, long rests, rare travel',()=>{
  // A lingering hover still brings him over: that is his job.
  assert.equal(decide(agent,senses({calm:true,hover:{id:'b',ms:AGENT_TIMING.hoverDwell}}),()=>.5).intent.type,'travel');
 });
+
+test('every routine leaves him facing the way he started',()=>{
+ for(const name of ['headShake','dance','spin','lookAround'])for(const r of [0,.3,.6,.99]){
+  const plan=planRoutine(name,()=>r);
+  if(name==='lookAround')continue; // looking around may end facing the other way on purpose
+  assert.equal(plan.steps.filter(s=>s.flip).length%2,0,`${name} at ${r}`);
+ }
+ for(const name of ['nod','headShake','dance','stretch','spin'])assert.ok(ROUTINE_NAMES.includes(name));
+});

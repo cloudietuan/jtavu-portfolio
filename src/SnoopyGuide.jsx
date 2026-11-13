@@ -12,14 +12,13 @@ const TOPICS={
 };
 export const topicProjects=topic=>topic==='All'?projectList:projectList.filter(p=>p.tags.includes(topic));
 export const nextProject=id=>projectList[(projectList.findIndex(p=>p.id===id)+1)%projectList.length].id;
-export const projectNumber=id=>String(projectList.findIndex(p=>p.id===id)+1).padStart(2,'0');
 
 /** What the card says for a project or topic. Pure, so it can be tested. */
 export function guideContent(guide){
  if(!guide)return null;
  if(guide.type==='project'){
   const p=projects[guide.id];if(!p)return null;
-  return {kind:'project',id:p.id,kicker:`${projectNumber(p.id)} · ${p.tags.join(' / ')}`,title:p.title,status:p.status,role:p.role,
+  return {kind:'project',id:p.id,kicker:p.tags.join(' / '),title:p.title,status:p.status,role:p.role,
    facts:[['What it is',p.description],['John’s part',p.contribution],p.next?['Where it stands',p.next]:null].filter(Boolean),url:p.url};
  }
  const t=TOPICS[guide.id];if(!t)return null;
@@ -71,7 +70,7 @@ export function SnoopyGuide({guide,onClose,onOpenProject,onBrief,onGoTo,focusOnO
    <div className="guide-actions"><button className="guide-primary" onClick={()=>onOpenProject(content.id)}>Full story</button><button onClick={()=>onGoTo(content.id)}>Take me there</button><a href={content.url} target="_blank" rel="noreferrer">Visit ↗</a><button className="guide-next" data-guide-trigger onClick={()=>onBrief('project',nextProject(content.id))}>Next →</button></div>
   </>:<>
    <p className="guide-line">{content.line}</p>
-   <div className="guide-chips">{content.projects.map(p=><button key={p.id} data-guide-trigger onClick={()=>onBrief('project',p.id)}><i>{projectNumber(p.id)}</i>{p.title}</button>)}</div>
+   <div className="guide-chips">{content.projects.map(p=><button key={p.id} data-guide-trigger onClick={()=>onBrief('project',p.id)}>{p.title}</button>)}</div>
   </>}
  </aside>;
 }

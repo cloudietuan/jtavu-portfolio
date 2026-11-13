@@ -77,6 +77,39 @@ const BUILDERS={
  peek(random){
   return [{ms:between(random,650,1000),pose:stand,lean:7,head:11,emote:'?'},{ms:350,pose:stand,lean:10,head:12,wag:{speed:1.2,amplitude:6}}];
  },
+ // Head-only acting on the standing pose.
+ nod(random){
+  const steps=[{ms:200,pose:stand}],nods=2+Math.floor(random()*2);
+  for(let i=0;i<nods;i++)steps.push({ms:190,pose:stand,head:11,lean:2},{ms:190,pose:stand,head:-5});
+  steps.push({ms:between(random,300,500),pose:stand,wag:{speed:1.2,amplitude:10}});
+  return steps;
+ },
+ headShake(random){
+  const steps=[{ms:180,pose:stand,emote:'?'}],shakes=3+Math.floor(random()*2);
+  for(let i=0;i<shakes;i++)steps.push({ms:120,pose:stand,flip:true,head:i%2?6:-6});
+  if(shakes%2)steps.push({ms:120,pose:stand,flip:true});
+  steps.push({ms:between(random,300,500),pose:stand,head:-6});
+  return steps;
+ },
+ // A little two-step: lean and hop from side to side.
+ dance(random){
+  const beats=4+Math.floor(random()*3)*2,steps=[];
+  for(let i=0;i<beats;i++)steps.push({ms:230,pose:i%2?act('ladder'):stand,lean:i%2?9:-9,lift:i%2?10:5,head:i%2?0:-8,wag:{speed:2,amplitude:14},emote:i===0?'♪':undefined,flip:i>0&&i%4===0});
+  if(steps.filter(s=>s.flip).length%2)steps.push({ms:120,pose:stand,flip:true});
+  steps.push({ms:160,pose:act('portal'),squash:[1.07,.9]},{ms:between(random,400,700),pose:wake(pick(random,POSES.sitSmile))});
+  return steps;
+ },
+ // A long stretch after standing still: front down, then up tall.
+ stretch(random){
+  return [{ms:between(random,700,1100),pose:wake(POSES.playBow),lean:-5,squash:[1.06,.94]},{ms:260,pose:wake(POSES.crouch)},{ms:between(random,500,800),pose:stand,head:-10,squash:[.95,1.08],lift:3},{ms:300,pose:stand,wag:{speed:1.5,amplitude:12}}];
+ },
+ // A quick spin on the spot.
+ spin(random){
+  const turns=4+Math.floor(random()*2)*2,steps=[{ms:140,pose:act('portal'),squash:[1.06,.9]}];
+  for(let i=0;i<turns;i++)steps.push({ms:95,pose:{kind:'walk',frame:(i*2)%8},flip:true,lift:12});
+  steps.push({ms:150,pose:act('portal'),squash:[1.1,.86],emote:'!'},{ms:300,pose:stand});
+  return steps;
+ },
  chaseTail(random){
   const spins=5+Math.floor(random()*4),steps=[];
   for(let i=0;i<spins;i++)steps.push({ms:110,pose:{kind:'walk',frame:(i*3)%8},flip:true,lift:i%2?6:2});

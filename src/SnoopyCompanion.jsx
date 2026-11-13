@@ -30,7 +30,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  const [emote,setEmote]=useState(null),emoteTimer=useRef(null);
  function showEmote(symbol){if(!symbol)return;if(!playfulRef.current&&!['?','!','hi!','♥'].includes(symbol))return;clearTimeout(emoteTimer.current);setEmote({symbol,key:performance.now()});emoteTimer.current=setTimeout(()=>setEmote(null),1500);}
  // Calm host by default; the playful resident is one tap away.
- const [playful,setPlayful]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-playful')==='true'}catch{return false}});const playfulRef=useRef(playful);playfulRef.current=playful;
+ const [playful,setPlayful]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-playful')!=='false'}catch{return false}});const playfulRef=useRef(playful);playfulRef.current=playful;
  useEffect(()=>{try{sessionStorage.setItem('jtavu-snoopy-playful',String(playful))}catch{}},[playful]);
  const [freeRoam,setFreeRoam]=useState(()=>{try{return sessionStorage.getItem('jtavu-snoopy-free-roam')!=='false'}catch{return true}});
  const [reaction,setReaction]=useState(''),[feedback,setFeedback]=useState('');
