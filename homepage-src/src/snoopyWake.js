@@ -1,10 +1,10 @@
-// Sleeping, a groggy blink or two, eyes open, then one continuous push up into
-// a sit. Holds ease out as he rises so the frames read as a single motion.
+// Stretch then stand: asleep, a couple of sleepy blinks, eyes open, a big
+// play-bow stretch, then he stands up and shakes it off. 'stand' means the
+// standing pose from the walk sheet.
+export const STAND = 'stand';
 export const wakePoses = [
-  [0, 340], [1, 240], [0, 170], [1, 200], [2, 300],
-  [5, 170], [3, 150], [4, 160], [6, 140], [7, 130],
-  [8, 120], [9, 120], [10, 120], [11, 140],
-  [12, 120], [13, 120], [14, 150], [15, 320],
+  [0, 360], [1, 240], [0, 180], [1, 220], [2, 380],
+  [5, 200], [6, 820], [7, 170], [STAND, 620],
 ];
 export const wakeDuration = wakePoses.reduce((total, [, duration]) => total + duration, 0);
 export function wakeFrameAt(elapsed) {
@@ -13,5 +13,5 @@ export function wakeFrameAt(elapsed) {
     end += duration;
     if (elapsed < end) return frame;
   }
-  return 15;
+  return STAND;
 }

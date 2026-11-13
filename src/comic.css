@@ -228,3 +228,34 @@ html.fx-cursor-text .cursor-pixel{opacity:0}
 .highlights-section h2,.offer-section h2,.experience-section h2{font:400 clamp(40px,5.2vw,80px)/1 var(--f-mega);font-style:normal;letter-spacing:-.01em;color:var(--ink)}
 .highlight-card.tone-red .text-action{color:var(--ink);border-color:var(--ink)}
 .highlights-section h2,.offer-section h2,.experience-section h2{font-size:clamp(40px,6.2vw,100px);line-height:1.02;text-transform:uppercase}
+
+/* Flashier, 12 November. */
+/* CREATOR letters bounce in once the intro leaves, and jump when hovered. */
+.hero-v2 h1 span{display:inline-block;transition:transform .35s cubic-bezier(.3,1.8,.5,1)}
+.hero-v2.is-live h1 span{animation:letter-in .7s cubic-bezier(.3,1.6,.5,1) both}
+.hero-v2.is-live h1 span:nth-child(1){animation-delay:.05s}.hero-v2.is-live h1 span:nth-child(2){animation-delay:.11s}.hero-v2.is-live h1 span:nth-child(3){animation-delay:.17s}.hero-v2.is-live h1 span:nth-child(4){animation-delay:.23s}.hero-v2.is-live h1 span:nth-child(5){animation-delay:.29s}.hero-v2.is-live h1 span:nth-child(6){animation-delay:.35s}.hero-v2.is-live h1 span:nth-child(7){animation-delay:.41s}
+.hero-v2 h1 span:hover{transform:translateY(-14%) rotate(-5deg);color:var(--accent)}
+@keyframes letter-in{0%{opacity:0;transform:translateY(60%) scale(.6) rotate(-8deg)}60%{opacity:1;transform:translateY(-8%) scale(1.06) rotate(2deg)}100%{transform:none}}
+/* Big comic word bands that scroll sideways. */
+.hype-band{overflow:hidden;border-block:var(--line);margin:30px -4vw;rotate:-1.5deg;box-shadow:0 6px 0 var(--ink)}
+.hype-band.is-sun{background:var(--sun)}.hype-band.is-red{background:var(--accent);color:#fff;rotate:1.2deg}
+.hype-track{display:flex;width:max-content;animation:hype-scroll 26s linear infinite}
+.hype-band.is-red .hype-track{animation-direction:reverse}
+.hype-track span{font:400 clamp(28px,4.4vw,64px)/1.25 var(--f-mega);white-space:nowrap;padding-right:.4em;letter-spacing:.01em}
+.hype-band:hover .hype-track{animation-play-state:paused}
+@keyframes hype-scroll{to{transform:translateX(-50%)}}
+/* Headings slam in as you reach them. */
+.scroll-portfolio h2.reveal{opacity:0;transform:scale(1.18) rotate(-2deg)}
+.scroll-portfolio h2.reveal.is-revealed{opacity:1;transform:none;animation:slam .55s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes slam{0%{opacity:0;transform:scale(1.25) rotate(-3deg)}55%{opacity:1;transform:scale(.97) rotate(.6deg)}75%{transform:translateX(-3px)}88%{transform:translateX(2px)}100%{transform:none}}
+/* Cards lean toward the pointer with a glossy highlight. */
+.highlight-card.is-tilting,.offer-card.is-tilting{transform:perspective(800px) rotateX(var(--rx,0)) rotateY(var(--ry,0)) translateY(-4px);transition:transform .08s linear}
+.highlight-card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),#ffffff8c,transparent 55%)}
+.highlight-card.is-tilting::after{opacity:1}
+/* A shine sweeps across buttons on hover. */
+.hero-cta a,.offer-cta,.highlight-card .text-action,.contact-section .text-action{position:relative;overflow:hidden}
+.hero-cta a::after,.highlight-card .text-action::after,.contact-section .text-action::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#ffffffb3 50%,transparent 65%);transform:translateX(-120%);pointer-events:none}
+.hero-cta a:hover::after,.highlight-card .text-action:hover::after,.contact-section .text-action:hover::after{transform:translateX(120%);transition:transform .6s ease}
+@media(prefers-reduced-motion:reduce){.hero-v2.is-live h1 span,.scroll-portfolio h2.reveal.is-revealed{animation:none}.scroll-portfolio h2.reveal{opacity:1;transform:none}.hype-track{animation:none}.hero-cta a::after{display:none}}
+.hype-band{overflow:clip;contain:paint}
+.scroll-portfolio{overflow-x:clip}

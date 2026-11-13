@@ -7,7 +7,7 @@ import frames from './snoopyFrames.json';
 // Every pose is redrawn on one shared pixel grid with one palette.
 // This only re-samples existing artwork; nothing is redrawn by hand.
 const DEFAULT_GRID = 384;
-export const PIXEL_GRID = 96;
+export const PIXEL_GRID = 192;
 export const PALETTE = [[20, 20, 20], [255, 252, 244], [215, 48, 31]];
 // The wake sheet is drawn about 10% smaller than the walk sheet. Scaling it
 // up keeps his head the same size when he stands, so he does not grow.
@@ -18,10 +18,10 @@ export const WAKE_SCALE = 1.1;
 export const WAKE_GROUND = [16.3, 16.6, 18, 2.9, -1.6, -2.7, -8.7, -20.4, -18, -19.8, -27.2, -20.6, -13.2, -13.1, -14.7, -14.5];
 // The order the frames play in while he wakes, used for that smooth path.
 export const WAKE_ORDER = [0, 1, 2, 5, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-export function wakeShift(frame) {
-  const i = Math.max(0, WAKE_ORDER.indexOf(frame));
-  const planted = 17 + (-14 - 17) * (i / (WAKE_ORDER.length - 1));
-  return (planted - WAKE_GROUND[frame]) * WAKE_SCALE;
+// Paws centred, but never pushed past the canvas edge (the lying frames fill it).
+export function wakeShift(frame, width = 0) {
+  const room = Math.max(0, (384 - width) / 2);
+  return Math.max(-room, Math.min(room, -WAKE_GROUND[frame] * WAKE_SCALE));
 }
 export function snapPixel(r, g, b, a) {
   if (a < 112) return [0, 0, 0, 0];
@@ -77,7 +77,7 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
       const f = frames[name][walking ? frame : standing ? 2 : frame];
       const scale = name === 'walk' ? 384 / f.sourceCell * .96 : WAKE_SCALE;
       const width = f.w * scale, height = f.h * scale;
-      const shift = name === 'wake' ? wakeShift(frame) : 0;
+      const shift = name === 'wake' ? wakeShift(frame, width) : 0;
       ctx.clearRect(0, 0, GRID, GRID);
       ctx.save();
       ctx.imageSmoothingEnabled = false;

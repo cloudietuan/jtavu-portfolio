@@ -10,15 +10,16 @@ const DEFAULT_GRID = 384;
 // Every pose, whichever sheet it comes from, is redrawn on one shared pixel
 // grid with one palette, so walking, sitting and action poses match exactly.
 // This only re-samples the existing artwork; nothing is redrawn.
-export const PIXEL_GRID = 96;
+export const PIXEL_GRID = 192;
 // Sleeping and waking use the wake sheet's own frames (the same style as
 // standing), scaled so his head matches the walk sheet, with feet planted.
 export const WAKE_SCALE = 1.1;
 const WAKE_GROUND = [16.3, 16.6, 18, 2.9, -1.6, -2.7, -8.7, -20.4, -18, -19.8, -27.2, -20.6, -13.2, -13.1, -14.7, -14.5];
 const WAKE_ORDER = [0, 1, 2, 5, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-export function wakeShift(frame) {
-  const i = Math.max(0, WAKE_ORDER.indexOf(frame));
-  return (17 - 31 * (i / (WAKE_ORDER.length - 1)) - WAKE_GROUND[frame]) * WAKE_SCALE;
+// Paws centred, but never pushed past the canvas edge (the lying frames fill it).
+export function wakeShift(frame, width = 0) {
+  const room = Math.max(0, (384 - width) / 2);
+  return Math.max(-room, Math.min(room, -WAKE_GROUND[frame] * WAKE_SCALE));
 }
 export const PALETTE = [[20, 20, 20], [255, 252, 244], [215, 48, 31]];
 export function snapPixel(r, g, b, a) {
@@ -91,7 +92,7 @@ export function SnoopySprite({ frame, walking, standing, facing = 1, grid = DEFA
         ctx.scale(scale * UNIT, scale * UNIT);
         drawBow(ctx, texture, f, actionProgress);
       } else ctx.drawImage(texture, f.x, f.y, f.w, f.h,
-        ((384 - width) / 2 + (name === 'wake' ? wakeShift(frame) : 0)) * UNIT, (376 - height - climbLift) * UNIT, width * UNIT, height * UNIT);
+        ((384 - width) / 2 + (name === 'wake' ? wakeShift(frame, width) : 0)) * UNIT, (376 - height - climbLift) * UNIT, width * UNIT, height * UNIT);
       ctx.restore();
       unifyPixels(ctx, GRID, true);
     });

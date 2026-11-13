@@ -41,3 +41,9 @@
 .intro .snoopy.sleeping{visibility:visible;opacity:1}
 .intro .snoopy.is-waking .sleep-z{display:none}
 .door-z{display:none}
+/* Stretch then stand. */
+.intro .snoopy.is-stretching .wake-sprite{animation:wake-stretch .82s ease-in-out both;transform-origin:50% 98%}
+.intro .snoopy.is-shaking .wake-sprite{animation:wake-shake .62s ease-out both;transform-origin:50% 98%}
+@keyframes wake-stretch{0%{transform:none}35%,70%{transform:scale(1.08,.9) skewX(-4deg)}100%{transform:none}}
+@keyframes wake-shake{0%{transform:scale(.94,1.08)}20%{transform:rotate(-6deg)}38%{transform:rotate(5deg)}54%{transform:rotate(-4deg)}70%{transform:rotate(2deg)}100%{transform:none}}
+@media(prefers-reduced-motion:reduce){.intro .snoopy.is-stretching .wake-sprite,.intro .snoopy.is-shaking .wake-sprite{animation:none}}
