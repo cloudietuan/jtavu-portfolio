@@ -184,3 +184,8 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 ## Stories by kind of work, 13 November
 - User wants each kind of work to be interesting to read as his story. Projects carry a kind (projects.js KINDS): web (LIVE SITE!), design (WEAR IT!), lab for research (EUREKA!), blueprint for prototypes (PROTOTYPE!). Project cards wear the stamp and a matching background (graph paper for research, blueprint grid for prototypes).
 - The full story dialog is a four-panel comic strip (ComicStrip.jsx): The idea, My part, What I made, Where it stands, using only the project's own fields, each panel with a sound effect from its kind. Panels look like browser windows for websites, taped sketches for design, graph paper for research and blueprints for prototypes. Two columns on desktop, one on phones.
+
+## Cleaner card hover, 13 November
+
+- John disliked the highlight and service card hover. Removed the action-line burst, the glare sweep and the pointer-driven 3D tilt (the tilt `useEffect` in `ScrollPortfolio.jsx` is gone).
+- Hover is now a plain comic lift: the card nudges up and left and its ink shadow deepens. Reduced motion keeps the shadow change only.

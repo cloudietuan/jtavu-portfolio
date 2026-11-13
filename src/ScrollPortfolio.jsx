@@ -34,9 +34,7 @@ export function ScrollPortfolio({filter,setFilter,openProject,brief}){
   update();window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll);
   return()=>{window.removeEventListener('scroll',onScroll);window.removeEventListener('resize',onScroll);};
  },[]);
- useEffect(()=>{if(!matchMedia('(hover:hover) and (pointer:fine)').matches||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  const move=e=>{const c=e.target.closest?.('.highlight-card,.offer-card');document.querySelectorAll('.is-tilting').forEach(x=>{if(x!==c){x.classList.remove('is-tilting');x.style.removeProperty('--rx');x.style.removeProperty('--ry');}});if(!c)return;const r=c.getBoundingClientRect();c.classList.add('is-tilting');c.style.setProperty('--ry',(((e.clientX-r.left)/r.width-.5)*14).toFixed(2)+'deg');c.style.setProperty('--rx',(-((e.clientY-r.top)/r.height-.5)*12).toFixed(2)+'deg');c.style.setProperty('--gx',((e.clientX-r.left)/r.width*100).toFixed(1)+'%');c.style.setProperty('--gy',((e.clientY-r.top)/r.height*100).toFixed(1)+'%');};
-  window.addEventListener('pointermove',move,{passive:true});return()=>window.removeEventListener('pointermove',move);},[]);
+
  const [phone]=useState(()=>typeof matchMedia!=='undefined'&&matchMedia('(max-width: 700px)').matches);
  return <div className="scroll-portfolio">
  <section id="highlights" className="highlights-section" aria-labelledby="highlights-title"><p className="section-kicker">HIGHLIGHTS</p><h2 id="highlights-title">The short version.<span className="pow pow-head" aria-hidden="true">WOW!</span></h2><div className="highlight-grid swipe-row">{highlights.map((h,i)=><article key={h.title} className={`highlight-card tone-${h.tone}`} style={{'--i':i}}><h3>{h.title}</h3><p>{h.line}</p>{h.link&&<a className="text-action" href={h.link.href} {...(h.link.href.startsWith('http')?{target:'_blank',rel:'noreferrer'}:{})}>{h.link.label}</a>}</article>)}</div></section>

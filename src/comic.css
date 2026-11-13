@@ -441,3 +441,13 @@ body{font-weight:400}
 .index-project.kind-design .kind-stamp{background:var(--accent);color:#fff}
 .index-project.kind-lab{background-image:linear-gradient(#a9e0ff30 1px,transparent 1px),linear-gradient(90deg,#a9e0ff30 1px,transparent 1px);background-size:18px 18px}
 .index-project.kind-blueprint{background-image:linear-gradient(#1f4fa814 1px,transparent 1px),linear-gradient(90deg,#1f4fa814 1px,transparent 1px);background-size:18px 18px}
+
+/* Cleaner card hover, 13 November: no action lines, no glare, no 3D tilt.
+   A card simply pops up toward you with a deeper ink shadow, like a panel
+   lifted off the page. */
+.highlight-card::before,.offer-card::before,.highlight-card::after{display:none!important}
+.highlight-card.is-tilting,.offer-card.is-tilting{transform:none}
+.highlight-card,.offer-card{transition:transform .18s cubic-bezier(.3,1.4,.5,1),box-shadow .18s}
+.highlight-card:hover,.highlight-card.is-tilting:hover{transform:translate(-4px,-6px);box-shadow:10px 12px 0 var(--ink)}
+.offer-card:hover,.offer-card.is-tilting:hover{transform:translate(-3px,-4px);box-shadow:8px 9px 0 var(--ink)}
+@media(prefers-reduced-motion:reduce){.highlight-card:hover,.offer-card:hover{transform:none}}
