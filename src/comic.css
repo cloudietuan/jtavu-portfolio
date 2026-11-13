@@ -297,3 +297,57 @@ html.fx-cursor-text .cursor-pixel{opacity:0}
 @media(prefers-reduced-motion:reduce){.status-dot,.status-pill i,.status-flip span,.status-pill span,.cmd-menu,.cmd-overlay{animation:none}}
 @media(max-width:700px){.site-header .cmd-toggle{grid-column:1;grid-row:1;justify-self:end;align-self:center;margin-right:10px;padding:6px 12px;box-shadow:3px 3px 0 var(--ink)}}
 @media(max-width:700px){.site-header .brand{grid-column:1;grid-row:1;align-self:center}}
+.blind-dust-layer{position:fixed;inset:0;z-index:121;pointer-events:none}
+.blind-dust{position:fixed;display:block;background:#e9e1cf;border:2px solid var(--ink,#141414);border-radius:2px;pointer-events:none}
+.exp-links{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0}
+.exp-links a{font:800 12px var(--f-body);color:var(--ink);text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:3px 10px;background:#fff;box-shadow:2px 2px 0 var(--ink);transition:transform .12s,background .15s}
+.exp-links a:hover{background:var(--sun);transform:translate(-1px,-1px)}
+
+/* Tighter spacing, 13 November: less empty space between sections. */
+.highlights-section,.offer-section,.experience-section{padding:72px 0 36px}
+.highlights-section h2,.offer-section h2,.experience-section h2{margin-bottom:28px}
+.work-intro{padding:72px 0 36px}
+.project-story{padding:56px 0 64px}
+.project-index{margin:10px auto 40px;padding-top:56px}
+.about-section{padding-top:80px}
+.about-section h2{margin-bottom:28px}
+.hype-band{margin:14px -4vw}
+.exp-groups{gap:36px 56px}
+.offer-cta{margin-top:30px}
+/* Experience groups open and close (all open on desktop). */
+.exp-group>summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer}
+.exp-group>summary::-webkit-details-marker{display:none}
+.exp-group>summary h3{margin-bottom:12px}
+.exp-count{display:none;font:800 12px var(--f-body);border:2px solid var(--ink);border-radius:999px;padding:0 8px;background:#fff;margin-bottom:12px}
+@media(min-width:701px){.exp-group>summary{pointer-events:none}}
+
+/* Phones: easy to move through. */
+@media(max-width:700px){
+ .highlights-section,.offer-section,.experience-section{padding:48px 0 20px}
+ .work-intro{padding:52px 0 24px}
+ .project-story{padding:32px 0 40px}
+ .project-index{padding-top:36px;margin-bottom:24px}
+ .about-section{padding-top:52px}
+ /* Highlights and offers become rows you swipe sideways. */
+ .swipe-row{display:flex!important;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;margin:0 -6%;padding:6px 6% 18px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .swipe-row::-webkit-scrollbar{display:none}
+ .swipe-row>*{flex:0 0 78%;scroll-snap-align:center}
+ .highlight-card:nth-child(n){rotate:0deg}
+ .offer-card{border:var(--line);border-radius:14px;padding:18px;background:#fff;box-shadow:4px 4px 0 var(--ink)}
+ .swipe-row::after{content:"";flex:0 0 1px}
+ /* The project directory is a swipe row of chips instead of a long list. */
+ .project-directory{display:flex!important;overflow-x:auto;gap:10px;margin:14px -6% 0;padding:4px 6% 14px;scroll-snap-type:x proximity;scrollbar-width:none}
+ .project-directory::-webkit-scrollbar{display:none}
+ .project-directory li{flex:0 0 auto;scroll-snap-align:start}
+ .project-directory button{white-space:nowrap}
+ .project-directory button span,.project-directory button em{display:none}
+ /* Experience groups collapse; tap a heading to open it. */
+ .exp-groups{gap:12px}
+ .exp-group{border:var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+ .exp-group>summary h3{margin:0}
+ .exp-count{display:inline-block;margin:0 0 0 auto}
+ .exp-group>summary::after{content:"+";font:400 22px var(--f-title);margin-left:6px}
+ .exp-group[open]>summary::after{content:"−"}
+ .exp-group ul{margin-top:8px}
+ .exp-item{padding:12px 0}
+}

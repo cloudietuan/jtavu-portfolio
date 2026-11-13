@@ -16,7 +16,7 @@ export const BLIND_TIMING=Object.freeze({tug:240,hold:70,raise:620,drop:720});
 // Snoopy brings the blind down with one of several stunts (introSwing.js),
 // never the same one twice in a row, then lets go and lands on the website.
 export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHandoff}){
- const panel=useRef(null),raising=useRef(false),pull=useRef(null),kid=useRef(null),bubble=useRef(null);
+ const panel=useRef(null),raising=useRef(false),pull=useRef(null),kid=useRef(null),bubble=useRef(null),dustBox=useRef(null);
  const [swinging,setSwinging]=useState(false),[stunt,setStunt]=useState(''),[kidPose,setKidPose]=useState({kind:'action',action:'swing',facing:1}),tab=useRef(null);
  const [reduced]=useState(()=>matchMedia('(prefers-reduced-motion: reduce)').matches);
  const [pulled,setPulled]=useState(0);
@@ -62,7 +62,7 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
   let start=null;try{const f=frameRef?.current,d=f?.contentDocument,r=d?.querySelector('.snoopy')?.getBoundingClientRect(),o=f.getBoundingClientRect();if(r?.width)start={x:o.left+r.left+r.width/2,y:o.top+r.bottom};}catch{}
   const view={width:innerWidth,height:innerHeight,size:snoopySize(innerWidth),start},plan=planSwing(name,view),fly=620;
   const t0=performance.now();
-  let prevT=t0,fall=null,flyEnd=0,said=null,poseKey='';
+  let prevT=t0,fall=null,flyEnd=0,said=null,poseKey='',lastDust=0,landedDust=false;
   const show=(pose,facing)=>{const key=`${pose.kind}|${pose.frame}|${pose.action}|${facing}`;if(key!==poseKey){poseKey=key;setKidPose({...pose,facing});}};
   const place=(anchor,x,y,rot,[sx,sy]=[1,1])=>{
    const k=kid.current;if(!k)return;
@@ -79,6 +79,14 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
     if(kid.current)kid.current.style.opacity=p.visible?'1':'0';
     if(p.visible){show(p.pose,p.facing||1);place(p.anchor,p.x,p.y,p.rot,p.squash);}
     if(kid.current)kid.current.dataset.zoom=p.zoom>0?'right':p.zoom<0?'left':'';
+    // Dust from his feet while he runs (and a burst when he lands).
+    if(p.visible&&p.dust&&dustBox.current&&(p.dust>1?!landedDust:now-lastDust>85)){
+     if(p.dust>1)landedDust=true;lastDust=now;
+     const n=p.dust>1?6:2;
+     for(let i=0;i<n;i++){const d=document.createElement('i'),dir=p.dust>1?(i%2?1:-1):-(p.facing||1),sz=3+Math.round(Math.random()*3);
+      d.className='blind-dust';d.style.cssText=`left:${p.x-(p.facing||1)*view.size*.12}px;top:${p.y-2}px;width:${sz}px;height:${sz}px`;dustBox.current.appendChild(d);
+      d.animate([{transform:'translate(-50%,-50%)',opacity:.9},{transform:`translate(calc(-50% + ${(dir*(14+Math.random()*24)).toFixed(1)}px),calc(-50% - ${(4+Math.random()*12).toFixed(1)}px)) scale(.5)`,opacity:0}],{duration:420+Math.random()*200,easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish=()=>d.remove();}
+    }
     if(tab.current)tab.current.style.transform=p.tabRot?`rotate(${p.tabRot.toFixed(1)}deg)`:'';
     if(p.say&&p.say!==said){said=p.say;say(p.say);}
     if(t>=plan.releaseAt){
@@ -130,6 +138,6 @@ export function IntroBlind({frameRef,leaving,dropIn,onRaiseStart,onRaised,onHand
    <span ref={tab} className="intro-blind-tab"/>
   </button>
  </div>
- {swinging&&<div ref={kid}  className="blind-snoopy" data-stunt={stunt} aria-hidden="true" style={{opacity:0,width:snoopySize(innerWidth),height:snoopySize(innerWidth)}}><SnoopySprite frame={kidPose.frame??2} walking={kidPose.kind==='walk'} standing={kidPose.kind!=='walk'} action={kidPose.kind==='action'?kidPose.action:undefined} facing={kidPose.facing||1}/><span ref={bubble} className="blind-snoopy-bubble"/></div>}
+ {swinging&&<div ref={dustBox} className="blind-dust-layer" aria-hidden="true"/>}{swinging&&<div ref={kid}  className="blind-snoopy" data-stunt={stunt} aria-hidden="true" style={{opacity:0,width:snoopySize(innerWidth),height:snoopySize(innerWidth)}}><SnoopySprite frame={kidPose.frame??2} walking={kidPose.kind==='walk'} standing={kidPose.kind!=='walk'} action={kidPose.kind==='action'?kidPose.action:undefined} facing={kidPose.facing||1}/><span ref={bubble} className="blind-snoopy-bubble"/></div>}
  </>;
 }

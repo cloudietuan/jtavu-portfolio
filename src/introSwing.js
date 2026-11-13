@@ -28,26 +28,38 @@ function geometry({width,height,size,start}){
 }
 
 const HANG={kind:'action',action:'swing'},KICK={kind:'action',action:'ladder'},CROUCH={kind:'action',action:'portal'};
-const run=dist=>({kind:'walk',frame:Math.floor(dist/11)%8});
+// Running: one full eight-frame stride covers about 1.4 body widths, so his
+// feet keep pace with the ground instead of sliding or churning.
+const strideOf=(g,dist)=>Math.abs(dist)/(g.size*1.4)*8;
+const run=(g,dist)=>({kind:'walk',frame:Math.floor(strideOf(g,dist))%8});
+// A small rise and fall on every step (two footfalls per stride).
+const bob=(g,dist)=>g.size*.045*Math.abs(Math.sin(strideOf(g,dist)/8*Math.PI*2));
 const hidden=blindY=>({blindY,visible:false});
 function hang(g,blindY,rot,{pose=HANG,squash=[1,1],say=null,facing=-1}={}){
  return {blindY,visible:true,anchor:'hands',x:g.cx,y:g.hands(blindY),rot,pose,squash,say,facing,tabRot:clamp(rot*.6,-18,18)};
 }
-const feet=(blindY,x,y,pose,{rot=0,squash=[1,1],facing=1,say=null,zoom=0}={})=>({blindY,visible:true,anchor:'feet',x,y,rot,pose,squash,facing,say,zoom,tabRot:0});
+const feet=(blindY,x,y,pose,{rot=0,squash=[1,1],facing=1,say=null,zoom=0,dust=0}={})=>({blindY,visible:true,anchor:'feet',x,y,rot,pose,squash,facing,say,zoom,dust,tabRot:0});
 
 // The shared entrance, about 1.9 seconds. Ends with his hands on the tab and
 // the blind lifted.
-const A={dash:520,away:240,pop:380,zoom:400,crouch:120,leap:280};
+const A={ready:300,dash:560,away:240,pop:380,zoom:400,crouch:120,leap:280};
 export const APPROACH_MS=Object.values(A).reduce((a,b)=>a+b,0);
 function approach(g,t){
  const lifted=-g.lift;
- // 1. Runs and zooms off the right side of the landing screen. The landing
- //    screen is the blind, so it has not moved yet.
- if(t<A.dash){
-  const k=t/A.dash,endX=g.width+g.size*.9,x=lerp(g.from.x,endX,easeIn(k));
-  return feet(0,x,g.from.y,run(x-g.from.x),{rot:6*k,facing:1,squash:[1+.08*k,1-.05*k],say:k>.35?'zoom!':null,zoom:k>.25?1:0});
+ // 0. Ready: he spots the edge ("!"), rocks back and crouches to push off.
+ if(t<A.ready){
+  const k=t/A.ready,c=Math.sin(Math.min(1,k/.7)*Math.PI/2);
+  return feet(0,g.from.x-g.size*.06*c,g.from.y,{kind:'walk',frame:2},{rot:-7*c,facing:1,squash:[1+.08*c,1-.12*c],say:k<.6?'!':null});
  }
- let u=t-A.dash;
+ let u=t-A.ready;
+ // 1. Runs and zooms off the right side of the landing screen. The landing
+ //    screen is the blind, so it has not moved yet. He pushes off hard,
+ //    leans further into it as he speeds up, and kicks up dust.
+ if(u<A.dash){
+  const k=u/A.dash,endX=g.width+g.size*.9,x=lerp(g.from.x-g.size*.06,endX,easeIn(k)),d=x-g.from.x;
+  return feet(0,x,g.from.y-bob(g,d),run(g,d),{rot:5+9*k,facing:1,squash:[1+.06*k,1-.04*k],say:k>.35?'zoom!':null,zoom:k>.25?1:0,dust:k<.75?1:0});
+ }
+ u-=A.dash;
  // 2. Off screen while the blind lifts and shows the strip of website below.
  if(u<A.away)return hidden(lifted*easeOut(u/A.away));
  u-=A.away;
@@ -56,14 +68,14 @@ function approach(g,t){
  if(u<A.pop){
   const k=u/A.pop,rise=g.size*1.3;
   const y=k<.7?lerp(g.height+g.size*1.1,g.ground-rise,easeOut(k/.7)):lerp(g.ground-rise,g.ground,easeIn((k-.7)/.3));
-  return feet(lifted,popX,y,k<.85?KICK:CROUCH,{facing:-1,squash:k<.85?[.92,1.1]:[1.12,.86],say:k<.6?'boing!':null});
+  return feet(lifted,popX,y,k<.85?KICK:CROUCH,{facing:-1,squash:k<.85?[.92,1.1]:[1.12,.86],say:k<.6?'boing!':null,dust:k>=.85?2:0});
  }
  u-=A.pop;
  // 4. Zooms left along the bottom to just right of the tab.
  const stopX=g.cx+g.size*1.25;
  if(u<A.zoom){
-  const k=u/A.zoom,x=lerp(popX,stopX,easeOut(k));
-  return feet(lifted,x,g.ground,run(popX-x),{rot:-7*(1-k),facing:-1,squash:[1.06,.96],zoom:k<.75?-1:0,say:k<.5?'zoooom':null});
+  const k=u/A.zoom,x=lerp(popX,stopX,easeOut(k)),d=popX-x;
+  return feet(lifted,x,g.ground-bob(g,d)*(1-k),run(g,d),{rot:-11*(1-k),facing:-1,squash:[1.06,.96],zoom:k<.75?-1:0,say:k<.5?'zoooom':null,dust:k<.8?1:0});
  }
  u-=A.zoom;
  // 5. Crouches, then 6. leaps up and grabs the tab.

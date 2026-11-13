@@ -164,7 +164,7 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
   const header=document.querySelector('.site-header')?.getBoundingClientRect();
   r.headerBottom=header?Math.max(0,header.bottom):0;
   const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>({element,id:terrainId(element),rect:surfaceRect(element)}));
-  r.controls=[...document.querySelectorAll('a,button,summary,input,select,textarea')].filter(e=>!e.closest('.snoopy-companion,.snoopy-control-panel')).map(e=>e.getBoundingClientRect()).filter(b=>b.width&&b.height&&b.bottom>0&&b.top<innerHeight&&b.width*b.height<60000);
+  r.controls=[...document.querySelectorAll('a,button,summary,input,select,textarea')].filter(e=>!e.closest('.snoopy-companion,.snoopy-control-panel,.canvas .object')).map(e=>e.getBoundingClientRect()).filter(b=>b.width&&b.height&&b.bottom>0&&b.top<innerHeight&&b.width*b.height<60000);
   r.covers=obstacles(true).filter(b=>b.width*b.height<60000||b.height<120);
   r.platforms=buildPlatforms(nodes,{width:innerWidth,height:innerHeight,size,top:r.headerBottom});
   return r.platforms;
@@ -182,7 +182,10 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
   const r=resident.current,current=r.perch?.element;
   const options=scanTerrain(true).filter(p=>p.element!==current&&(!to||p.id===to)&&(!where||where(p)));
   const wanted=r.prefer?.isConnected?options.filter(p=>r.prefer.contains(p.element)).map(p=>p.id):[];
-  const choice=choosePlatform(options,{from:pos.current,size,covers:r.covers,controls:r.controls,avoid:nearby?[]:agent.current.visited,prefer:wanted,jitter:nearby?()=>0:Math.random});
+  let choice=choosePlatform(options,{from:pos.current,size,covers:r.covers,controls:r.controls,avoid:nearby?[]:agent.current.visited,prefer:wanted,jitter:nearby?()=>0:Math.random});
+  // A small screen (a phone) has only a few surfaces: once he has visited them
+  // all he goes back to old favourites instead of standing still.
+  if((!choice||choice.blocked)&&!nearby&&agent.current.visited?.length)choice=choosePlatform(options,{from:pos.current,size,covers:r.covers,controls:r.controls,avoid:[],prefer:wanted,jitter:Math.random});
   if(!choice||choice.blocked){
    if(to||(r.perch&&!mustLeave))return false;
    leavePerch();docked.current=true;r.dockSince=now-DOCK_REST+1500;return false;

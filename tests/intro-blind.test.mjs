@@ -40,7 +40,7 @@ for(const name of SWING_VARIANTS)for(const view of views)for(const r of [.1,.9])
   assert.ok(said.size>=1,'he says something');
   assert.ok(plan.release.vy<-500&&plan.release.say,'he is thrown clear when the blind snaps up');
   // His weight has pulled the blind down from the lifted position by the release.
-  const lifted=Math.min(...Array.from({length:40},(_,i)=>plan.sample(i*20).blindY));
+  const lifted=Math.min(...Array.from({length:Math.ceil(APPROACH_MS/20)},(_,i)=>plan.sample(i*20).blindY));
   assert.ok(plan.sample(plan.releaseAt-1).blindY>lifted+50);
  });
 }
@@ -77,4 +77,20 @@ test('every pull opens with the zoom: off the right side, up from the bottom, ov
   assert.equal(end.anchor,'hands');assert.ok(Math.abs(end.x-view.width/2)<1,'hands on the centre tab');
   assert.ok(pts.some(p=>p.say==='zoom!'));
  }
+});
+
+test('the run is believable: a ready crouch first, feet keep pace with the ground, a bob and dust',()=>{
+ const view={width:1280,height:800,size:132,start:{x:500,y:360}},plan=planSwing('bungee',view,()=>.5);
+ const first=plan.sample(10);assert.equal(first.say,'!');assert.ok(first.squash[1]<1.001);
+ // Through the dash, each frame change matches about 1/8 of a 1.4-body stride.
+ let lastFrame=null,lastX=null,steps=[],bobs=new Set(),dust=0;
+ for(let t=320;t<820;t+=4){const p=plan.sample(t);if(p.anchor!=='feet'||p.pose.kind!=='walk')continue;
+  if(p.dust)dust++;bobs.add(Math.round(p.y));
+  if(lastFrame!==null&&p.pose.frame!==lastFrame)steps.push(p.x-lastX);
+  if(lastFrame===null||p.pose.frame!==lastFrame){lastFrame=p.pose.frame;lastX=p.x;}}
+ const stride=view.size*1.4/8;
+ assert.ok(steps.length>=4,'several footfalls');
+ assert.ok(steps.slice(1,-1).every(d=>d>stride*.5&&d<stride*2.2),`steps ${steps.map(Math.round)} vs ${Math.round(stride)}`);
+ assert.ok(bobs.size>3,'his body rises and falls as he runs');
+ assert.ok(dust>5,'he kicks up dust');
 });
