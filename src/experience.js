@@ -46,3 +46,6 @@ export const experience=[
   {name:'Advanced Vocal Ensemble',role:'Tenor section',when:'',line:'Section leadership, festivals and performances.'},
  ]},
 ];
+
+// The homepage "Right now" line. Only things John is actually doing now.
+export const nowStatus=['Building Bayu Consulting','Designing at UX@Berkeley','Growing Paletté’s creator network','Making content with AAA Media','Studying Economics & Data Science'];
