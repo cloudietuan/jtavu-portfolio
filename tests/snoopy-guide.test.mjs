@@ -29,7 +29,7 @@ test('topics count and list the right projects',()=>{
   assert.deepEqual(c.projects.map(p=>p.id),expected.map(p=>p.id));
   assert.ok(c.line.startsWith(String(expected.length)));
  }
- assert.equal(topicProjects('All').length,7);
+ assert.equal(topicProjects('All').length,8);
 });
 
 test('the card stays on screen beside Snoopy, or becomes a bottom sheet on phones',()=>{

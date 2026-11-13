@@ -6,7 +6,7 @@
 export const highlights=[
  {title:'ISEF Finalist',line:'Made it to Regeneron ISEF in 2026 after placing first in Arizona with a solar panel tracking system.',tone:'sun',link:{label:'See my research tool',href:'#project-oncosync'}},
  {title:'Eight years in a family business',line:'Brand and operations for my family’s six-person nail salon in Mesa, Arizona, since 2018.',tone:'red',link:{label:'Sunset Nails',href:'#project-sunset'}},
- {title:'Co-founder, Bayu Consulting',line:'Helping local businesses get found online, from strategy to the client call.',tone:'sky',link:{label:'Bayu on Instagram',href:'https://www.instagram.com/bayu.consulting/'}},
+ {title:'Co-founder, Bayu Consulting',line:'Helping local businesses get found online, from strategy to the client call.',tone:'sky',link:{label:'Visit the site',href:'https://bayuconsulting.lovable.app/'}},
  {title:'Golden Summit Career Day',line:'Helped run a career day for 200+ students with 15+ professionals from places like Honeywell, Vanguard and ASU.',tone:'paper',link:{label:'See the event',href:'https://jtavu.com/golden-summit'}},
 ];
 
@@ -20,7 +20,7 @@ export const offers=[
 // LinkedIn, grouped into sections of work.
 export const experience=[
  {title:'Now at Berkeley',burst:'NEW!',items:[
-  {name:'Bayu Consulting',role:'Co-Founder',when:'Sep 2026 to now',line:'Lead strategy and client relations, marketing local businesses and improving their online presence.',links:[{label:'Instagram',href:'https://www.instagram.com/bayu.consulting/'}]},
+  {name:'Bayu Consulting',role:'Co-Founder',when:'Sep 2026 to now',line:'Lead strategy and client relations, marketing local businesses and improving their online presence.',links:[{label:'Website',href:'https://bayuconsulting.lovable.app/'},{label:'Instagram',href:'https://www.instagram.com/bayu.consulting/'}]},
   {name:'Paletté',role:'Growth Intern',when:'Oct 2026 to now',line:'Outreach and partnerships to grow Paletté’s network of creators and brand partners. Brands and creators: reach me for partnerships.',links:[{label:'john.vu@team.paletteboutiques.com',href:'mailto:john.vu@team.paletteboutiques.com'}]},
   {name:'UX@Berkeley',role:'UX Engineer',when:'Sep 2026 to now',line:'Designing the homepage for the club’s client, FAST@Berkeley, in Figma. Now at mid-fidelity.'},
   {name:'Asian American Association',role:'Media Committee',when:'Sep 2026 to now',line:'Content with the AAA media team, including the reality show Class of Feelings.'},

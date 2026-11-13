@@ -407,3 +407,37 @@ body{font-weight:400}
 .hero-v2 h1{font-size:calc(var(--word) * 1.3);line-height:.74}
 /* The bigger CREATOR is taller: cards and the ball stand on its new top edge. */
 .canvas.hero-v2,.canvas.hero-v2.is-live{--top:calc(var(--base) + var(--word)*.98)}
+
+/* Each kind of work tells its story differently, 13 November. */
+/* The full story is a four-panel comic strip. */
+.comic-strip{list-style:none;margin:22px 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.strip-panel{position:relative;border:var(--line);border-radius:6px;background:#fff;padding:34px 16px 16px;box-shadow:5px 5px 0 var(--ink);animation:panel-in .45s calc(var(--i)*110ms) cubic-bezier(.3,1.5,.5,1) both}
+.strip-panel:nth-child(odd){rotate:-.6deg}.strip-panel:nth-child(even){rotate:.6deg}
+.strip-panel p{margin:0;font:700 15px/1.5 var(--f-body)}
+.strip-caption{position:absolute;left:-3px;top:-3px;font:400 15px var(--f-hand);background:var(--sun);border:3px solid var(--ink);padding:1px 10px}
+.strip-fx{position:absolute;right:-10px;top:-18px;font:400 18px/1 var(--f-mega);letter-spacing:.04em;color:#fff;background:var(--accent);padding:12px 13px;text-shadow:2px 2px 0 var(--ink);clip-path:polygon(50% 0,61% 22%,85% 8%,78% 33%,100% 40%,80% 55%,96% 78%,70% 74%,62% 100%,48% 80%,30% 98%,28% 74%,3% 82%,18% 58%,0 40%,22% 32%,12% 8%,38% 22%);rotate:12deg}
+.strip-panel:nth-child(2) .strip-fx{background:var(--sky);color:var(--ink);text-shadow:2px 2px 0 #fff}
+.strip-panel:nth-child(3) .strip-fx{background:var(--sun);color:var(--ink);text-shadow:2px 2px 0 #fff}
+@keyframes panel-in{from{opacity:0;transform:translateY(16px) scale(.94)}}
+@media(max-width:700px){.comic-strip{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.strip-panel{animation:none}}
+
+/* The look of each kind: websites, design, research, prototypes. */
+.comic-strip.kind-lab .strip-panel{background-color:#fbfdff;background-image:linear-gradient(#a9e0ff55 1px,transparent 1px),linear-gradient(90deg,#a9e0ff55 1px,transparent 1px);background-size:16px 16px}
+.comic-strip.kind-blueprint .strip-panel{background:#1f4fa8;color:#fff;background-image:linear-gradient(#ffffff22 1px,transparent 1px),linear-gradient(90deg,#ffffff22 1px,transparent 1px);background-size:18px 18px}
+.comic-strip.kind-design .strip-panel{background:#fffaf0}
+.comic-strip.kind-design .strip-panel::before,.comic-strip.kind-design .strip-panel::after{content:"";position:absolute;width:56px;height:18px;background:#ffd23fb3;border:1px solid #14141433;top:-9px}
+.comic-strip.kind-design .strip-panel::before{left:30%;rotate:-6deg}.comic-strip.kind-design .strip-panel::after{display:none}
+.comic-strip.kind-web .strip-panel{padding-top:44px}
+.comic-strip.kind-web .strip-panel::before{content:"";position:absolute;left:0;right:0;top:0;height:16px;border-bottom:2px solid var(--ink);background:radial-gradient(circle at 10px 8px,var(--accent) 3.5px,transparent 4px),radial-gradient(circle at 22px 8px,var(--sun) 3.5px,transparent 4px),radial-gradient(circle at 34px 8px,var(--sky) 3.5px,transparent 4px),#f1ece0}
+.comic-strip.kind-web .strip-caption{top:13px}
+
+/* Project cards wear a stamp for their kind. */
+.index-project{position:relative}
+.kind-stamp{position:absolute;right:14px;top:-14px;z-index:2;font:400 15px/1 var(--f-mega);letter-spacing:.05em;padding:6px 10px;border:3px solid var(--ink);background:var(--sun);rotate:4deg;box-shadow:3px 3px 0 var(--ink);transition:rotate .25s cubic-bezier(.3,1.8,.5,1)}
+.index-project:hover .kind-stamp{rotate:-6deg;scale:1.08}
+.index-project.kind-lab .kind-stamp{background:var(--sky)}
+.index-project.kind-blueprint .kind-stamp{background:#1f4fa8;color:#fff}
+.index-project.kind-design .kind-stamp{background:var(--accent);color:#fff}
+.index-project.kind-lab{background-image:linear-gradient(#a9e0ff30 1px,transparent 1px),linear-gradient(90deg,#a9e0ff30 1px,transparent 1px);background-size:18px 18px}
+.index-project.kind-blueprint{background-image:linear-gradient(#1f4fa814 1px,transparent 1px),linear-gradient(90deg,#1f4fa814 1px,transparent 1px);background-size:18px 18px}
