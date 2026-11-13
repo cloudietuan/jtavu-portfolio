@@ -197,3 +197,8 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Removed every jtavu.com link: Golden Summit highlight goes to its page, Hinksey links to the Sunset Nails project, Sunset's supporting research goes to the Hinksey page, Maryvale's goes to the AP Research page, OncoSync's roadmap link is gone, and the dialog fallback goes to Experience. tests/activity-pages.test.mjs fails if a jtavu.com link comes back.
 - The old site-wide h1 and header rules (giant tilted CREATOR, 75px flex header) are reset inside .activity-page.
 - JTAVU Apparel still links to its own site, jtavu.lovable.app; ask before changing that.
+
+## Choir reel, 13 November
+- User asked to add the video of him singing from jtavu.com. It is the site's choir performance reel (jtavu.com/assets/choir-reel-BpMEyZXN.mp4, 44 s, 720 x 748), now copied into this repo as public/assets/choir-reel.mp4 (faststart) with a poster frame, so nothing streams from jtavu.com.
+- It plays on the Advanced Vocal Ensemble page in a "Watch it / PLAY!" panel (experience items can carry a video: src, poster, caption; ActivityPage renders it with controls, preload none). The Experience list links to it with "Watch me sing".
+- The vocal ensemble item now uses the facts from his own jtavu.com write-up: auditioned ensemble, section leading by singing side by side, Superior with Distinction at multiple competitions, Jazz MPA at NAU, festivals at Disney and in Hawaii, 9th to 12th grade, plus the GCA Pops 2026 co-host. The caption does not say which singer he is (not known).

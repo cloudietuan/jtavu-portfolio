@@ -34,6 +34,7 @@ export function ActivityPage({slug}){
   <ol className="act-strip" aria-label="The story">
    {panelsOf(a).map((panel,i)=><li key={i} className="act-panel" style={{'--i':i}}>{panel.caption&&<span className="act-panel-caption">{panel.caption}</span>}<p>{panel.text}</p></li>)}
   </ol>
+  {a.video&&<section className="act-video" aria-labelledby="act-video-title"><h2 id="act-video-title">Watch it<span className="pow pow-sm" aria-hidden="true">PLAY!</span></h2><figure><div className="act-screen"><video controls playsInline preload="none" poster={a.video.poster} src={a.video.src}/></div><figcaption>{a.video.caption}</figcaption></figure></section>}
   {a.chips&&<section className="act-stats" aria-label="Highlights"><h2>The scoreboard</h2><ul>{a.chips.map(c=><li key={c}>{c}</li>)}</ul></section>}
   {p&&<section className="act-project" aria-labelledby="act-project-title">
    {p.image&&<img src={p.image} alt={`${p.title} preview`} loading="lazy"/>}

@@ -531,3 +531,13 @@ body{font-weight:400}
 .activity-page h2{font-style:normal}
 /* The old site-wide header rule (flex row, 75px tall) must not touch the cover. */
 .activity-page header.act-cover{display:block;height:auto;gap:0;font-size:inherit;justify-content:normal;z-index:1}
+/* Video panel on an activity page (the choir reel). */
+.act-video{margin-top:44px}
+.act-video h2{display:flex;align-items:center;gap:14px}
+.act-video h2 .pow-sm{margin:0;background:var(--accent);color:#fff;text-shadow:1px 1px 0 var(--ink)}
+.act-video figure{margin:0;max-width:560px}
+.act-screen{background:var(--ink);border:var(--line);padding:12px;box-shadow:8px 9px 0 var(--accent);rotate:-1deg}
+.act-screen video{display:block;width:100%;aspect-ratio:720/748;object-fit:cover;background:#000}
+.act-video figcaption{display:inline-block;margin-top:16px;background:var(--sun);border:2.5px solid var(--ink);padding:6px 12px;font:400 16px/1.2 var(--f-hand);rotate:1deg}
+@media (min-width:900px){.act-video figure{display:grid;grid-template-columns:minmax(0,560px) 1fr;gap:28px;align-items:end;max-width:none}}
+.act-video figcaption{justify-self:start;align-self:end}

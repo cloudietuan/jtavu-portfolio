@@ -50,7 +50,7 @@ export const experience=[
  {title:'Off the clock',burst:'WOW!',items:[
   {name:'Volleyball',role:'Varsity captain and libero',when:'',badge:'C',line:'Captained GCA’s varsity team from the back row. I also run @gcamensvolleyball (graphics, recaps and spotlights, 30K peak profile views), coach youth and JV players, and now play intramurals at the RSF.',links:[{label:'Team Instagram',href:'https://www.instagram.com/gcamensvolleyball/'},{label:'Apparel I designed',href:'#project-apparel'}]},
   {name:'Redline',role:'Media and photography',when:'Fall 2026',line:'Shooting photos for Berkeley’s car media and events club, at events around Berkeley, San Francisco and San Jose.'},
-  {name:'Advanced Vocal Ensemble',role:'Tenor section leader',when:'',badge:'♪',line:'Led the tenor section, sang at festivals and performances, and co-hosted the GCA Pops 2026 concert.'},
+  {name:'Advanced Vocal Ensemble',role:'Tenor section leader',when:'9th to 12th grade',badge:'♪',line:'Led the tenor section of an auditioned ensemble, teaching by singing side by side. We earned Superior with Distinction at multiple competitions, performed at Jazz MPA at NAU and went to festivals at Disney and in Hawaii. I also co-hosted the GCA Pops 2026 concert.',chips:['Superior with Distinction','Jazz MPA at NAU','Disney and Hawaii festivals'],video:{src:'/assets/choir-reel.mp4',poster:'/assets/choir-reel-poster.jpg',caption:'The Advanced Vocal Ensemble on stage.'},links:[{label:'Watch me sing',href:'#/a/advanced-vocal-ensemble'}]},
  ]},
 ];
 
