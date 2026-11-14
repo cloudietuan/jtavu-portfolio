@@ -62,7 +62,7 @@ export function ResumePage(){
   <header className="act-cover resume-head">
    <h1 ref={heading} tabIndex={-1}>John Vu</h1>
    <p className="act-caption"><b>UC Berkeley ’30 · Economics &amp; Data Science</b></p>
-   <p className="resume-contact"><a href="mailto:cloudietuan@gmail.com">cloudietuan@gmail.com</a><a href="https://www.linkedin.com/in/jtavu" target="_blank" rel="noreferrer">linkedin.com/in/jtavu</a></p>
+   <p className="resume-contact"><a href="mailto:jtavu9@gmail.com">jtavu9@gmail.com</a><a href="https://www.linkedin.com/in/jtavu" target="_blank" rel="noreferrer">linkedin.com/in/jtavu</a></p>
   </header>
   {experience.map(g=><section key={g.title} className="resume-group"><h2>{g.title}</h2><ul>{g.items.map(it=>{const a=activityList.find(x=>x.name===it.name&&x.role===it.role);return <li key={it.name+it.role}><div className="resume-top"><a href={activityHref(a.slug)}><b>{it.name}</b></a>{it.when&&<span>{it.when}</span>}</div><em>{it.role}</em><p>{it.line}</p></li>})}</ul></section>)}
  </main>;

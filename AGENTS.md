@@ -202,3 +202,6 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - User asked to add the video of him singing from jtavu.com. It is the site's choir performance reel (jtavu.com/assets/choir-reel-BpMEyZXN.mp4, 44 s, 720 x 748), now copied into this repo as public/assets/choir-reel.mp4 (faststart) with a poster frame, so nothing streams from jtavu.com.
 - It plays on the Advanced Vocal Ensemble page in a "Watch it / PLAY!" panel (experience items can carry a video: src, poster, caption; ActivityPage renders it with controls, preload none). The Experience list links to it with "Watch me sing".
 - The vocal ensemble item now uses the facts from his own jtavu.com write-up: auditioned ensemble, section leading by singing side by side, Superior with Distinction at multiple competitions, Jazz MPA at NAU, festivals at Disney and in Hawaii, 9th to 12th grade, plus the GCA Pops 2026 co-host. The caption does not say which singer he is (not known).
+
+## Contact email, 13 November: supersedes cloudietuan@gmail.com
+- User chose jtavu9@gmail.com as the site's contact email (contact band, offers, about, résumé page, jump menu). Earlier notes that mention cloudietuan@gmail.com are out of date. The Paletté partnerships email stays on the Paletté item.

@@ -36,7 +36,7 @@ export function buildCommands(projects=projectList){
   {id:'go-experience',group:'Go to',title:'Experience',hint:'where I’ve been',keys:'linkedin jobs roles resume',run:jump('experience')},
   {id:'go-about',group:'Go to',title:'About',hint:'hey, I’m John',keys:'bio who',run:jump('about')},
   {id:'go-top',group:'Go to',title:'Back to the top',hint:'CREATOR',keys:'home canvas top start',run:jump('top')},
-  {id:'email',group:'Say hi',title:'Email John',hint:'cloudietuan@gmail.com',keys:'contact hire mail hello',run:open('mailto:cloudietuan@gmail.com')},
+  {id:'email',group:'Say hi',title:'Email John',hint:'jtavu9@gmail.com',keys:'contact hire mail hello',run:open('mailto:jtavu9@gmail.com')},
   {id:'linkedin',group:'Say hi',title:'Open LinkedIn',hint:'linkedin.com/in/jtavu',keys:'experience profile',run:open('https://www.linkedin.com/in/jtavu')},
   {id:'resume',group:'Say hi',title:'Open résumé',hint:'every role on one page',keys:'resume cv',run:()=>{location.hash='#/resume';}},
   {id:'dance',group:'Snoopy',title:'Make Snoopy dance',hint:'♪',keys:'party fun music',run:snoopy('dance','♪ ♪ ♪')},
