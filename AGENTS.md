@@ -222,3 +222,6 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 ## Public repo and live site, 15 November
 - At the user's request the GitHub repo cloudietuan/jtavu-portfolio is public (changed in GitHub settings through his signed-in browser; the API proxy blocks settings writes).
 - The site is live on GitHub Pages at https://cloudietuan.github.io/jtavu-portfolio/ from the gh-pages branch. That branch holds the relative-path preview bundle (index.html, main.js, main.css, assets/, homepage/, .nojekyll) with the title "John Vu · JTAVU" and share tags. To update the live site, rebuild the bundle and force-push it to gh-pages. jtavu.com is still separate and unchanged.
+
+## Smaller Snoopy on laptops, 15 November: supersedes "same size as the landing screen" above 700px
+- User found Snoopy a bit big on a laptop. snoopySize.js now scales the landing-screen size by LAPTOP_SCALE 0.7 on screens wider than 700px (about 104px at 1440, 93px at 1280, 120px at 1920). Phones keep the full landing size with the 64px floor. The intro stunt sprite uses the same function, so the handoff to the site stays seamless.
