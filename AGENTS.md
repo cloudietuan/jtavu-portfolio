@@ -218,3 +218,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - HeroCity.jsx draws a comic-cover city inside the hero, behind everything else: a yellow sunburst of action rays and halftone dots in the sky, a pale far skyline, and inked near towers in cream, sky, yellow and pale red with lit window grids, water towers, a blinking antenna and a spired tower. Towers rise from the bottom of the CREATOR word so they show between the letters; heights are capped so every roof clears the header at any screen height. Two left towers hide on phones. Rooftops are Snoopy terrain (.hero-city .tower).
 - Only the comic-book style is borrowed; no character, logo, web pattern or other Spider-Man elements.
 - The hero copy now sits in a white comic caption panel (ink border, offset shadow, slight tilt) so it reads over the city; it tightens on screens under 820px tall so it never covers the word.
+
+## Public repo and live site, 15 November
+- At the user's request the GitHub repo cloudietuan/jtavu-portfolio is public (changed in GitHub settings through his signed-in browser; the API proxy blocks settings writes).
+- The site is live on GitHub Pages at https://cloudietuan.github.io/jtavu-portfolio/ from the gh-pages branch. That branch holds the relative-path preview bundle (index.html, main.js, main.css, assets/, homepage/, .nojekyll) with the title "John Vu · JTAVU" and share tags. To update the live site, rebuild the bundle and force-push it to gh-pages. jtavu.com is still separate and unchanged.
