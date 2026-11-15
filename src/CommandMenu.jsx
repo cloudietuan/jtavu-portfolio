@@ -10,7 +10,7 @@ const jump=id=>()=>{const el=document.getElementById(id);if(!el){location.hash=`
 const open=url=>()=>{const a=document.createElement('a');a.href=url;if(url.startsWith('http')){a.target='_blank';a.rel='noreferrer';}a.click();};
 
 // Calls back once the page has held still for a moment (or after 2 seconds).
-function whenScrollSettles(done){
+export function whenScrollSettles(done){
  let last=scrollY,still=0,tries=0;
  const id=setInterval(()=>{tries++;still=Math.abs(scrollY-last)<1?still+1:0;last=scrollY;if(still>=3||tries>20){clearInterval(id);done();}},100);
 }
@@ -30,10 +30,13 @@ export function buildCommands(projects=projectList){
    aim(0);
   }})),
   ...activityList.map(a=>({id:`activity-${a.slug}`,group:'Activities',title:a.name,hint:a.role,keys:`${a.name} ${a.role} ${a.group} activity story`,run:()=>{location.hash=activityHref(a.slug);}})),
+  {id:'go-town',group:'Go to',title:'Town',hint:'pick a building',keys:'map drive car buildings',run:jump('town')},
   {id:'go-highlights',group:'Go to',title:'Highlights',hint:'the short version',keys:'best awards isef',run:jump('highlights')},
   {id:'go-work',group:'Go to',title:'Work',hint:'things I’ve built',keys:'projects portfolio',run:jump('work')},
   {id:'go-offer',group:'Go to',title:'What I can do for you',hint:'services',keys:'hire offer help build',run:jump('offer')},
   {id:'go-experience',group:'Go to',title:'Experience',hint:'where I’ve been',keys:'linkedin jobs roles resume',run:jump('experience')},
+  {id:'go-hall',group:'Go to',title:'Hall of Fame',hint:'posters and awards',keys:'proof certificates posters awards papers',run:jump('hall')},
+  {id:'go-off',group:'Go to',title:'Off the clock',hint:'volleyball, singing, photos',keys:'fun hobbies volleyball choir',run:()=>{window.dispatchEvent(new CustomEvent('jtavu:experience-door',{detail:{door:'off'}}));jump('experience')();}},
   {id:'go-about',group:'Go to',title:'About',hint:'hey, I’m John',keys:'bio who',run:jump('about')},
   {id:'go-top',group:'Go to',title:'Back to the top',hint:'CREATOR',keys:'home canvas top start',run:jump('top')},
   {id:'email',group:'Say hi',title:'Email John',hint:'jtavu9@gmail.com',keys:'contact hire mail hello',run:open('mailto:jtavu9@gmail.com')},

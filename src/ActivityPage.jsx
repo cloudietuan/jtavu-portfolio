@@ -2,6 +2,8 @@ import {useEffect,useRef} from 'react';
 import {activityBySlug,activityList,activityHref,panelsOf,neighbours} from './activities.js';
 import {experience} from './experience.js';
 import {projects} from './projects.js';
+import {ActivityProof} from './HallOfFame.jsx';
+import {hallFor} from './hall.js';
 
 // A page per activity, styled like a comic issue. Only real facts from
 // experience.js and projects.js; nothing links back to jtavu.com.
@@ -35,6 +37,9 @@ export function ActivityPage({slug}){
    {panelsOf(a).map((panel,i)=><li key={i} className="act-panel" style={{'--i':i}}>{panel.caption&&<span className="act-panel-caption">{panel.caption}</span>}<p>{panel.text}</p></li>)}
   </ol>
   {a.video&&<section className="act-video" aria-labelledby="act-video-title"><h2 id="act-video-title">Watch it<span className="pow pow-sm" aria-hidden="true">PLAY!</span></h2><figure><div className="act-screen"><video controls playsInline preload="none" poster={a.video.poster} src={a.video.src}/></div><figcaption>{a.video.caption}</figcaption></figure></section>}
+  <ActivityProof slug={a.slug}/>
+  {a.photo?<figure className="act-photo"><img src={a.photo.src} alt={a.photo.alt||a.name} loading="lazy"/>{a.photo.caption&&<figcaption>{a.photo.caption}</figcaption>}</figure>
+   :(!a.video&&!p&&!hallFor(a.slug).length)&&<PhotoPlaceholder name={a.name}/>}
   {a.chips&&<section className="act-stats" aria-label="Highlights"><h2>The scoreboard</h2><ul>{a.chips.map(c=><li key={c}>{c}</li>)}</ul></section>}
   {p&&<section className="act-project" aria-labelledby="act-project-title">
    {p.image&&<img src={p.image} alt={`${p.title} preview`} loading="lazy"/>}
@@ -47,6 +52,13 @@ export function ActivityPage({slug}){
    <a href={activityHref(next.slug)} rel="next"><span>Next →</span><b>{next.name}</b></a>
   </nav>
  </main>;
+}
+
+// Stand-in until John adds a real photo for this activity. Never a fake photo.
+function PhotoPlaceholder({name}){
+ return <figure className="act-photo"><div className="photo-placeholder" role="img" aria-label={`Photo coming soon for ${name}`}><div>
+  <svg viewBox="0 0 120 96" aria-hidden="true"><rect x="4" y="16" width="112" height="76" rx="8" fill="#fff" stroke="#141414" strokeWidth="5"/><rect x="38" y="4" width="44" height="16" rx="4" fill="#fff" stroke="#141414" strokeWidth="5"/><circle cx="60" cy="54" r="22" fill="#A7D8FF" stroke="#141414" strokeWidth="5"/><circle cx="60" cy="54" r="9" fill="#141414"/><circle cx="98" cy="30" r="5" fill="#E03A2E"/></svg>
+  <b>PHOTO COMING SOON</b><span>{name}</span></div></div><figcaption>Real photo on the way.</figcaption></figure>;
 }
 
 function MissingPage(){

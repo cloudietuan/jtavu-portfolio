@@ -541,3 +541,148 @@ body{font-weight:400}
 .act-video figcaption{display:inline-block;margin-top:16px;background:var(--sun);border:2.5px solid var(--ink);padding:6px 12px;font:400 16px/1.2 var(--f-hand);rotate:1deg}
 @media (min-width:900px){.act-video figure{display:grid;grid-template-columns:minmax(0,560px) 1fr;gap:28px;align-items:end;max-width:none}}
 .act-video figcaption{justify-self:start;align-self:end}
+
+/* ===== Awwwards-inspired pass, 15 November: town, two doors, Hall of Fame, message ===== */
+
+/* Town: every building is a section; the red car drives there. */
+.town-section{padding-top:64px}
+.town-lede,.hall-lede{font:400 19px/1.35 var(--f-hand);margin:-6px 0 22px;max-width:640px}
+.town{position:relative;border:var(--line);box-shadow:8px 9px 0 var(--ink);background:#cdeeff;background-image:radial-gradient(#14141418 1.3px,transparent 1.4px);background-size:12px 12px;overflow:hidden;padding-top:46px}
+.town-sky{position:absolute;inset:0;pointer-events:none}
+.town-sun{position:absolute;right:7%;top:18px;width:clamp(42px,6vw,78px);aspect-ratio:1;border-radius:50%;background:var(--sun);border:var(--line);box-shadow:0 0 0 10px #ffd43b44}
+.town-row{position:relative;z-index:1;list-style:none;margin:0;padding:0 3%;display:grid;grid-template-columns:repeat(var(--stops),minmax(0,1fr));gap:3%;align-items:end}
+.town-stop{display:flex;flex-direction:column;align-items:stretch}
+.town-building{appearance:none;background:none;border:0;padding:0;margin:0;color:inherit;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.town-building svg{display:block;width:100%;height:auto;transform-origin:50% 100%;transition:transform .22s cubic-bezier(.3,1.5,.5,1)}
+.town-building:hover svg,.town-building:focus-visible svg{transform:translateY(-6px) scale(1.03)}
+.town-building:focus-visible{outline:none}
+.town-building:focus-visible .town-sign{outline:3px solid var(--accent);outline-offset:3px}
+.town-sign{font:400 clamp(12px,1.6vw,21px)/1 var(--f-mega);letter-spacing:.04em;background:var(--sun);border:2.5px solid var(--ink);padding:6px 10px;box-shadow:3px 3px 0 var(--ink);rotate:-2deg;white-space:nowrap;transition:background .2s,color .2s}
+.town-stop:nth-child(2n) .town-sign{rotate:2deg}
+.town-stop.is-here .town-sign{background:var(--accent);color:#fff}
+.town-stop.is-open svg{animation:town-door .42s cubic-bezier(.3,1.6,.5,1)}
+.art-tower .lit{fill:var(--sun)}
+.art-gym .bulb{animation:town-bulb 1.2s calc(var(--b) * .15s) steps(1) infinite}
+.town-road{position:relative;height:clamp(54px,7vw,78px);background:var(--ink);background-image:linear-gradient(90deg,var(--sun) 50%,transparent 0);background-size:44px 5px;background-repeat:repeat-x;background-position:0 55%;border-top:6px solid #555}
+.town-lane{position:absolute;inset:0 3%}
+.town-driver{position:absolute;bottom:clamp(6px,1vw,12px);left:calc((var(--at) + .5) / var(--stops) * 100%);width:clamp(52px,8vw,112px);translate:-50% 0;transition:left .9s cubic-bezier(.45,0,.3,1)}
+.town-car{display:block;width:100%;height:auto;transition:transform .2s}
+.town-car.flip{transform:scaleX(-1)}
+.town-driver.is-driving .town-car{animation:town-bounce .16s ease-in-out infinite alternate}
+.town-vroom{position:absolute;left:50%;bottom:100%;translate:-50% -4px;font:400 clamp(14px,1.8vw,22px)/1 var(--f-mega);color:var(--accent);text-shadow:2px 2px 0 var(--ink);white-space:nowrap;animation:act-pop .3s both}
+@keyframes town-door{0%{transform:none}40%{transform:translateY(-10px) scale(1.08,.94)}100%{transform:none}}
+@keyframes town-bulb{50%{fill:#fff}}
+@keyframes town-bounce{to{transform:translateY(-3px) rotate(-1.5deg)}}
+.town-car.flip{animation-name:none}
+.town-driver.is-driving .town-car.flip{animation:town-bounce-flip .16s ease-in-out infinite alternate}
+@keyframes town-bounce-flip{from{transform:scaleX(-1)}to{transform:scaleX(-1) translateY(-3px) rotate(1.5deg)}}
+
+/* Experience behind two doors. */
+.exp-doors{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:8px 0 30px}
+.exp-door{position:relative;text-align:left;border:var(--line);padding:24px 26px 22px;box-shadow:5px 6px 0 var(--ink);background:#fff;color:var(--ink);font:inherit;cursor:pointer;transition:translate .18s cubic-bezier(.3,1.5,.5,1),box-shadow .18s,background .2s}
+.exp-door[aria-selected=true].door-on{background:var(--sky)}
+.exp-door[aria-selected=true].door-off{background:var(--sun)}
+.exp-door[aria-selected=true]{translate:-3px -4px;box-shadow:9px 10px 0 var(--ink)}
+.exp-door[aria-selected=false]{background-image:repeating-linear-gradient(90deg,transparent 0 46px,#14141412 46px 49px)}
+.exp-door:hover{translate:-2px -3px}
+.exp-door:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.door-label{display:block;font:400 clamp(30px,4.4vw,54px)/.95 var(--f-mega);letter-spacing:.03em}
+.door-sub{display:block;margin-top:8px;font:400 18px/1.2 var(--f-hand)}
+.door-count{position:absolute;right:18px;top:-16px;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;border:2.5px solid var(--ink);font:400 22px/1 var(--f-mega)}
+.exp-door[aria-selected=false] .door-count{background:#fff;color:var(--ink)}
+.exp-door[aria-selected=true]::after{content:'OPEN!';position:absolute;right:76px;top:-14px;font:400 15px/1 var(--f-mega);background:#fff;border:2.5px solid var(--ink);padding:4px 8px;rotate:6deg}
+#exp-door-panel{animation:act-slam .4s cubic-bezier(.3,1.5,.5,1) both}
+
+/* Hall of Fame wall and viewer. */
+.hall-section{padding-top:72px}
+.hall-filters{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 30px}
+.hall-filters button{font:700 15px var(--f-body);background:#fff;border:2.5px solid var(--ink);border-radius:999px;padding:8px 14px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;display:inline-flex;gap:8px;align-items:center;color:var(--ink)}
+.hall-filters button span{font:400 13px/1 var(--f-mega);background:var(--ink);color:#fff;border-radius:999px;padding:3px 7px}
+.hall-filters button[aria-pressed=true]{background:var(--sun);translate:-1px -2px;box-shadow:4px 5px 0 var(--ink)}
+.hall-wall{list-style:none;margin:0;padding:16px 0 8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:40px 28px}
+.hall-frame{rotate:var(--tilt);transition:rotate .2s,translate .2s;animation:act-slam .45s calc(var(--i) * .05s) cubic-bezier(.3,1.5,.5,1) both}
+.hall-frame:hover{rotate:0deg;translate:0 -6px}
+.hall-frame>button{position:relative;display:block;width:100%;padding:12px;background:#fff;border:var(--line);box-shadow:6px 7px 0 var(--ink);cursor:zoom-in}
+.hall-frame.kind-posters>button{background:var(--sky)}
+.hall-frame.kind-awards>button{background:var(--sun)}
+.hall-frame>button:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.hall-frame img{display:block;width:100%;height:200px;object-fit:contain;background:#fff;border:2.5px solid var(--ink)}
+.hall-pin{position:absolute;left:50%;top:-13px;width:74px;height:24px;translate:-50% 0;rotate:-4deg;background:#ffffffcc;border:2px dashed #14141455}
+.hall-plaque{margin:12px 6px 0;background:var(--ink);color:#fff;padding:9px 12px;display:flex;flex-direction:column;gap:3px;box-shadow:3px 3px 0 var(--accent)}
+.hall-plaque b{font:400 17px/1.1 var(--f-title)}
+.hall-plaque span{font:400 14px/1.2 var(--f-hand);color:#ffe88a}
+.hall-viewer{border:var(--line);padding:0;width:min(94vw,1080px);max-height:92vh;box-shadow:10px 10px 0 var(--accent);background:#fff;overflow:auto}
+.hall-viewer::backdrop{background:#141414b3;backdrop-filter:blur(2px)}
+.hall-viewer figure{margin:0;display:grid;grid-template-columns:minmax(0,1fr) 280px}
+.hall-viewer img{display:block;width:100%;height:auto;max-height:86vh;object-fit:contain;background:#fff;border-right:var(--line)}
+.hall-viewer figcaption{padding:26px 22px;background:var(--sun);display:flex;flex-direction:column;gap:10px}
+.hall-viewer h3{font:400 30px/1 var(--f-title);margin:30px 0 0}
+.hall-viewer p{margin:0;font:400 18px/1.3 var(--f-hand)}
+.hall-actions{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.hall-close{position:absolute;right:10px;top:10px;width:42px;height:42px;border:2.5px solid var(--ink);border-radius:50%;background:#fff;font:700 26px/1 var(--f-body);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+.hall-viewer figure{position:relative}
+.act-proof{margin-top:44px}
+.act-proof h2{display:flex;align-items:center;gap:14px}
+.act-proof h2 .pow-sm{margin:0}
+.hall-wall-small{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+
+/* A message from John. */
+.about-section{display:block}
+.about-section h2{margin-bottom:22px}
+.john-message{display:grid;grid-template-columns:minmax(170px,270px) minmax(0,1fr);gap:40px;align-items:start;margin:6px 0 26px}
+.john-photo{margin:0;rotate:-3deg}
+.john-photo img{display:block;width:100%;height:auto;background:#fff;border:var(--line);padding:9px;box-shadow:6px 7px 0 var(--ink)}
+.john-photo figcaption{display:inline-block;margin-top:14px;background:var(--sun);border:2.5px solid var(--ink);padding:5px 10px;font:400 15px/1.2 var(--f-hand);rotate:2deg}
+.john-bubble{position:relative;margin:0;max-width:720px;background:#fff;border:var(--line);border-radius:30px;padding:28px 34px 22px;box-shadow:7px 8px 0 var(--ink);font-size:19px;font-weight:700;line-height:1.55}
+.john-bubble::before,.john-bubble::after{content:'';position:absolute;top:64px;border-style:solid}
+.john-bubble::before{left:-30px;border-width:14px 30px 14px 0;border-color:transparent var(--ink) transparent transparent}
+.john-bubble::after{left:-22px;top:67px;border-width:11px 24px 11px 0;border-color:transparent #fff transparent transparent}
+.john-bubble p{margin:0 0 12px}
+.john-kicker{font:400 18px/1 var(--f-mega)!important;letter-spacing:.06em;color:var(--accent);margin-bottom:14px!important}
+.john-bubble footer{text-align:right}
+.john-sign{display:inline-block;font:400 clamp(38px,4.6vw,56px)/1 var(--f-hand);color:var(--accent);rotate:-6deg;clip-path:inset(0 0 0 0);transition:clip-path 1.4s .5s steps(18)}
+.about-section.reveal:not(.is-revealed) .john-sign{clip-path:inset(0 100% 0 0)}
+
+@media (max-width:700px){
+ .town{padding-top:34px}
+ .town-row{gap:2%;padding:0 2%}
+ .town-lane{inset:0 2%}
+ .town-sign{font-size:11px;padding:4px 5px;white-space:normal;text-align:center;line-height:1.05}
+ .exp-doors{gap:12px}
+ .exp-door{padding:18px 14px 14px}
+ .door-label{font-size:26px}
+ .door-sub{font-size:14px}
+ .door-count{width:36px;height:36px;font-size:17px;right:10px}
+ .exp-door[aria-selected=true]::after{display:none}
+ .hall-wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 14px}
+ .hall-frame img{height:130px}
+ .hall-frame>button{padding:8px}
+ .hall-plaque b{font-size:14px}
+ .hall-plaque span{font-size:12px}
+ .hall-viewer figure{grid-template-columns:1fr}
+ .hall-viewer img{border-right:0;border-bottom:var(--line)}
+ .hall-viewer h3{margin-top:0;font-size:24px}
+ .john-message{grid-template-columns:1fr;gap:28px}
+ .john-photo{width:min(220px,62%)}
+ .john-bubble{padding:22px 20px 16px;font-size:17px}
+ .john-bubble::before{left:44px;top:-30px;border-width:0 14px 30px 14px;border-color:transparent transparent var(--ink) transparent}
+ .john-bubble::after{left:47px;top:-21px;border-width:0 11px 24px 11px;border-color:transparent transparent #fff transparent}
+}
+@media (prefers-reduced-motion:reduce){
+ .town-driver{transition:none}.town-driver.is-driving .town-car,.art-gym .bulb,.town-stop.is-open svg,.hall-frame,#exp-door-panel{animation:none}
+ .john-sign{clip-path:none;transition:none}
+}
+
+/* Placeholder photo frames, 15 November: shown on activity pages with no real
+   photo, video, project or proof yet. Clearly labelled; swap in real photos by
+   giving the experience item a photo:{src,alt,caption}. */
+.act-photo{margin:44px 0 0;max-width:560px}
+.act-photo img,.photo-placeholder{display:block;width:100%;border:var(--line);box-shadow:7px 8px 0 var(--ink);rotate:-1deg}
+.photo-placeholder{aspect-ratio:4/3;background:var(--tone,#fff);background-image:radial-gradient(#14141426 1.5px,transparent 1.6px);background-size:12px 12px;display:grid;place-items:center;text-align:center;padding:20px}
+.photo-placeholder svg{width:min(120px,30%);height:auto}
+.photo-placeholder b{display:block;font:400 clamp(22px,3vw,32px)/1 var(--f-mega);letter-spacing:.05em;margin-top:10px}
+.photo-placeholder span{display:block;font:400 17px/1.2 var(--f-hand);margin-top:6px}
+.act-photo figcaption{display:inline-block;margin-top:16px;background:var(--sun);border:2.5px solid var(--ink);padding:6px 12px;font:400 16px/1.2 var(--f-hand);rotate:1deg}
+
+/* New sections use the same comic headline as the other main sections. */
+.town-section h2,.hall-section h2{font:400 clamp(40px,6.2vw,100px)/1.02 var(--f-mega);font-style:normal;letter-spacing:.02em;text-transform:uppercase;color:var(--ink);margin:0 0 20px}
