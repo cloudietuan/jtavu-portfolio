@@ -2,7 +2,6 @@ import {useEffect,useState} from 'react';
 import {highlights,offers,experience} from './experience';
 import {projectList,KINDS} from './projects';
 import {activityHref,slugOf} from './activities.js';
-import {TownMap} from './TownMap.jsx';
 import {HallOfFame} from './HallOfFame.jsx';
 import {MessageFromJohn,ExperienceDoors} from './StorySections.jsx';
 export function ScrollPortfolio({filter,setFilter,openProject,brief}){
@@ -41,7 +40,6 @@ export function ScrollPortfolio({filter,setFilter,openProject,brief}){
 
  const [phone]=useState(()=>typeof matchMedia!=='undefined'&&matchMedia('(max-width: 700px)').matches);
  return <div className="scroll-portfolio">
- <TownMap/>
  <section id="highlights" className="highlights-section" aria-labelledby="highlights-title"><p className="section-kicker">HIGHLIGHTS</p><h2 id="highlights-title">The short version.<span className="pow pow-head" aria-hidden="true">WOW!</span></h2><div className="highlight-grid swipe-row">{highlights.map((h,i)=><article key={h.title} className={`highlight-card tone-${h.tone}`} style={{'--i':i}}><h3>{h.title}</h3><p>{h.line}</p>{h.link&&<a className="text-action" href={h.link.href} {...(h.link.href.startsWith('http')?{target:'_blank',rel:'noreferrer'}:{})}>{h.link.label}</a>}</article>)}</div></section>
  <div className="hype-band is-sun" aria-hidden="true"><div className="hype-track">{Array.from({length:4},(_,k)=><span key={k}>BRANDS ✦ WEBSITES ✦ RESEARCH ✦ CONTENT ✦ </span>)}</div></div>
  <section id="work" className="work-intro"><p className="section-kicker">WORK</p><div className="work-heading"><h2>Things I’ve built.<span className="pow pow-head" aria-hidden="true">POW!</span></h2><p>Websites, brands and research.<br/>Tap one and Snoopy gives you the short version.</p></div><div className="work-filter-row"><div className="work-filters" aria-label="Filter selected work">{['All','Websites','Design','Research'].map(f=><button key={f} data-guide-trigger aria-pressed={filter===f} onClick={e=>{setFilter(f);brief('topic',f,e);}}>{f}</button>)}</div></div><ol className="project-directory" aria-label="Project directory. Choose one for Snoopy’s quick take.">{visible.map(p=><li key={p.id}><button data-guide-trigger data-preview={p.image} onClick={e=>brief('project',p.id,e)}><b>{p.title}</b><span>{p.tags.join(' / ')}</span><em>{p.status}</em></button></li>)}</ol></section>

@@ -18,7 +18,7 @@ import {tailWag} from './snoopyArticulation';
 import {createAgent,decide,tickDrives,settle,rememberVisit} from './snoopyAgent';
 import {planRoutine,sampleRoutine,jumpPhase,JUMP_LAND} from './snoopyRoutines';
 // Real page surfaces Snoopy may stand on. His feet rest on their top edge.
-const TERRAIN='.canvas .object:not(.ball),.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.highlight-card,.offer-card,.exp-group>h3,.about-section>p,.contact-section>a:first-of-type,.footer-word,.town-building,.hall-frame>button,.john-bubble,.exp-door';
+const TERRAIN='.canvas .object:not(.ball),.scroll-portfolio h2,.story-image,.story-statement,.index-preview,.index-project h3,.index-project>p,.highlight-card,.offer-card,.exp-group>h3,.about-section>p,.contact-section>a:first-of-type,.footer-word,.hero-city .tower,.hall-frame>button,.john-bubble,.exp-door';
 // The volleyball is not a resting surface: a dog his size cannot balance on a ball.
 // Measured once per image: how much of it is transparent padding on each side.
 const imageInsetCache=new Map();
