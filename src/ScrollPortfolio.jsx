@@ -28,7 +28,8 @@ export function ScrollPortfolio({filter,setFilter,openProject,brief}){
   const update=()=>{
    queued=false;
    const max=document.documentElement.scrollHeight-innerHeight;
-   document.documentElement.style.setProperty('--scroll-progress',max>0?Math.min(1,scrollY/max).toFixed(4):'0');
+   // Set on the header only: a custom property on :root restyles the whole page every scroll frame.
+   document.querySelector('.site-header')?.style.setProperty('--scroll-progress',max>0?Math.min(1,scrollY/max).toFixed(4):'0');
    let current='top';
    for(const id of ids){const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<innerHeight*.45)current=id;}
    for(const a of links){const on=a.getAttribute('href')===`#${current}`;a.classList.toggle('is-current',on);if(on)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');}

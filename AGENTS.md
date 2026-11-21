@@ -225,3 +225,10 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Smaller Snoopy on laptops, 15 November: supersedes "same size as the landing screen" above 700px
 - User found Snoopy a bit big on a laptop. snoopySize.js now scales the landing-screen size by LAPTOP_SCALE 0.7 on screens wider than 700px (about 104px at 1440, 93px at 1280, 120px at 1920). Phones keep the full landing size with the 64px floor. The intro stunt sprite uses the same function, so the handoff to the site stays seamless.
+
+## Smooth on phones, 20 November
+- User found the site laggy on mobile and wants it really smooth. Measured on an emulated iPhone with 4x CPU slowdown while scrolling; long tasks went from about 21 to 1 to 3 per run.
+- The scroll progress line sets --scroll-progress on .site-header only. Never set per-frame custom properties on :root; it restyles the whole page every scroll frame.
+- SnoopySprite caches each finished pose (pixel-grid result) by everything that changes the picture; actionProgress is stepped to 1/48 for bow and ladder. Only new poses pay for the pixel read-back.
+- Terrain and obstacle rects are measured at most every 300ms and 600ms and kept in page coordinates, shifted by scroll between measurements. Do not go back to measuring every surface each frame while he is in flight.
+- Hero props are 480px WebP (volleyball, camera, chrome); Sunset and Apparel screenshots are 1500px WebP; Snoopy sheets are lossless WebP (pixel-identical). The original PNGs stay in the repo but are not loaded.

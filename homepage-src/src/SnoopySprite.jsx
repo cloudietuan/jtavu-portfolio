@@ -55,7 +55,7 @@ function loadTexture(name) {
     textures[name] = new Promise(resolve => {
       const image = new Image();
       image.onload = () => resolve(image);
-      image.src = `/assets/snoopy-${name === 'wake' ? 'wake-source' : 'walk'}.png`;
+      image.src = `/assets/snoopy-${name === 'wake' ? 'wake-source' : 'walk'}.webp`;
     });
   }
   return textures[name];

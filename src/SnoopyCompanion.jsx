@@ -74,7 +74,7 @@ const terrainIds=new WeakMap();let terrainCount=0;
 const terrainId=element=>{if(!terrainIds.has(element))terrainIds.set(element,`surface-${++terrainCount}`);return terrainIds.get(element);};
 const chapters={work:'Things John’s built.', 'project-sunset':'This one started with the family salon.', 'project-apparel':'These ideas made it onto actual clothes.', highlights:'Start here. These are the big ones.',offer:'Need something built? This part’s for you.',experience:'Everything else John’s been up to.',about:'You’ve met the work. Here’s John.',contact:'Have an idea? Say hi.'};
 export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,onPausedChange,arrival}){
- const docked=useRef(false),panel=useRef(null),opener=useRef(null),body=useRef(null),shadowRef=useRef(null),dustLayer=useRef(null),pos=useRef({x:130,y:250}),target=useRef({x:130,y:250}),velocity=useRef({x:0,y:0}),distance=useRef(0),drag=useRef(null),tour=useRef(0),greeted=useRef(false),petTimer=useRef(null),obstacleCache=useRef({at:0,rects:[]}),menuOpen=useRef(false),initialized=useRef(false),toolAction=useRef(null),scrollPosition=useRef(0),lastSkill=useRef(null),scrollReturn=useRef(null),speechCheck=useRef(0),worldIntent=useRef(null),lastScrollAt=useRef(0),reactionTimer=useRef(null);
+ const docked=useRef(false),panel=useRef(null),opener=useRef(null),body=useRef(null),shadowRef=useRef(null),dustLayer=useRef(null),pos=useRef({x:130,y:250}),target=useRef({x:130,y:250}),velocity=useRef({x:0,y:0}),distance=useRef(0),drag=useRef(null),tour=useRef(0),greeted=useRef(false),petTimer=useRef(null),obstacleCache=useRef({at:0,rects:[],all:[],sy:0,key:NaN,w:0,h:0}),menuOpen=useRef(false),initialized=useRef(false),toolAction=useRef(null),scrollPosition=useRef(0),lastSkill=useRef(null),scrollReturn=useRef(null),speechCheck=useRef(0),worldIntent=useRef(null),lastScrollAt=useRef(0),reactionTimer=useRef(null);
  // Resident mode: his own mind (agent) and where he is standing (resident).
  const agent=useRef(createAgent()),resident=useRef({perch:null,jump:null,walkTo:null,walkSpeed:120,routine:null,fling:null,next:null,emoteIndex:-1,scrollV:0,scrollDir:0,scrollDist:0,scrollHopAt:0,riding:false,offSince:0,dockSince:0,platforms:[],covers:[],controls:[],headerBottom:0,scannedAt:0,prefer:null,lastStartle:0,scrollAt:0}),cursor=useRef({x:0,y:0,at:-1e9}),hover=useRef({host:null,at:0}),userAt=useRef(0),autoNap=useRef(false);
  const facingRef=useRef(1);
@@ -95,7 +95,13 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
  function setRoam(update){const next=typeof update==='function'?update(roam):update;onPausedChange?.(!next);}
  const interactive=active;
  function speak(text){setSpeech(text);}
- function obstacles(force=false){const now=performance.now();if(force||now-obstacleCache.current.at>200){obstacleCache.current={at:now,rects:[...document.querySelectorAll('a,button,input,textarea,select,summary,dialog,h1,h2,h3,p')].filter(e=>!e.closest('.snoopy-companion,.snoopy-control-panel')).map(e=>e.getBoundingClientRect()).filter(b=>b.width&&b.height&&b.top<innerHeight&&b.bottom>0)};}return obstacleCache.current.rects;}
+ // Page text and controls he must not cover. Measuring ~300 elements is costly on phones,
+ // so rects are kept in page coordinates and only shifted by the scroll between measurements.
+ function obstacles(force=false){const now=performance.now(),c=obstacleCache.current,sy=window.scrollY;
+  if(force||now-c.at>600||c.w!==innerWidth||c.h!==innerHeight){c.at=now;c.w=innerWidth;c.h=innerHeight;c.sy=sy;c.all=[...document.querySelectorAll('a,button,input,textarea,select,summary,dialog,h1,h2,h3,p')].filter(e=>!e.closest('.snoopy-companion,.snoopy-control-panel')).map(e=>e.getBoundingClientRect()).filter(b=>b.width&&b.height&&b.top<innerHeight*3&&b.bottom>-innerHeight*2);c.key=NaN;}
+  if(c.key===sy)return c.rects;
+  const d=c.sy-sy;c.key=sy;c.rects=(d?c.all.map(b=>({left:b.left,right:b.right,width:b.width,height:b.height,top:b.top+d,bottom:b.bottom+d,x:b.x,y:b.y+d})):c.all).filter(b=>b.top<innerHeight&&b.bottom>0);
+  return c.rects;}
  function safePoint(x,y){return findSafePoint({x,y},innerWidth,innerHeight,snoopySize(innerWidth),obstacles());}
  function cancelTool(reason='interrupted'){if(body.current&&toolAction.current)body.current.dataset.lastInterruption=reason;if(body.current)body.current.style.opacity='1';toolAction.current?.subject?.element?.classList.remove('snoopy-playing-ball');toolAction.current=null;body.current?.style.setProperty('--snoopy-swing-angle','0deg');setToolView(old=>old.tool?{tool:null,anchor:old.anchor,progress:0}:old);}
  function react(kind,duration=900){clearTimeout(reactionTimer.current);setReaction(kind);reactionTimer.current=setTimeout(()=>setReaction(''),duration);}
@@ -157,13 +163,19 @@ export function SnoopyCompanion({active,building,navigate,onBuild,paused=false,o
   if(light){
    // In flight only surface positions matter, and they move every frame while scrolling.
    const header=document.querySelector('.site-header')?.getBoundingClientRect();r.headerBottom=header?Math.max(0,header.bottom):0;
-   const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>({element,id:terrainId(element),rect:surfaceRect(element)}));
+   // Re-measuring every surface each frame made scrolling stutter on phones. Measure at most
+   // every 300ms and shift the saved page positions by how far the page has scrolled since.
+   const t=r.terrainCache;
+   if(!t||now-t.at>300||t.w!==innerWidth){r.terrainCache={at:now,w:innerWidth,sy:window.scrollY,nodes:[...document.querySelectorAll(TERRAIN)].map(element=>({element,id:terrainId(element),rect:surfaceRect(element)}))};}
+   const c=r.terrainCache,d=c.sy-window.scrollY;
+   const nodes=d?c.nodes.map(n=>({...n,rect:{...n.rect,top:n.rect.top+d,bottom:n.rect.bottom+d,...(n.rect.cy!=null?{cy:n.rect.cy+d}:{})}})):c.nodes;
    return r.platforms=buildPlatforms(nodes,{width:innerWidth,height:innerHeight,size,top:r.headerBottom});
   }
   r.scannedAt=now;
   const header=document.querySelector('.site-header')?.getBoundingClientRect();
   r.headerBottom=header?Math.max(0,header.bottom):0;
   const nodes=[...document.querySelectorAll(TERRAIN)].map(element=>({element,id:terrainId(element),rect:surfaceRect(element)}));
+  r.terrainCache={at:now,w:innerWidth,sy:window.scrollY,nodes};
   r.controls=[...document.querySelectorAll('a,button,summary,input,select,textarea')].filter(e=>!e.closest('.snoopy-companion,.snoopy-control-panel,.canvas .object')).map(e=>e.getBoundingClientRect()).filter(b=>b.width&&b.height&&b.bottom>0&&b.top<innerHeight&&b.width*b.height<60000);
   r.covers=obstacles(true).filter(b=>b.width*b.height<60000||b.height<120);
   r.platforms=buildPlatforms(nodes,{width:innerWidth,height:innerHeight,size,top:r.headerBottom});
