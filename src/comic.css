@@ -771,3 +771,58 @@ body{font-weight:400}
 .is-pinned .story-scenes{height:auto;min-height:0}
 .story-rail button.is-on{translate:6px 0}
 @media (max-width:1100px){.is-pinned .story-chips{display:none}}
+
+/* ===== Nav bar, 22 November: marketing links, sliding ink pill, Let's talk ===== */
+.site-header nav{position:relative;isolation:isolate;display:flex;align-items:center;gap:2px;font:800 14px/1 var(--f-body)}
+.site-header nav a{padding:9px 13px;border-radius:999px;color:var(--ink);transition:color .25s,translate .2s cubic-bezier(.3,1.6,.5,1)}
+.site-header nav a::after{display:none!important}
+.site-header nav a:hover{translate:0 -2px;color:var(--accent)}
+.site-header nav a.is-current,.site-header nav a.is-current:hover{color:#fff}
+.nav-ink{position:absolute;left:0;top:50%;height:34px;margin-top:-17px;width:0;border-radius:999px;background:var(--ink);box-shadow:3px 3px 0 var(--accent);z-index:-1;opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.3,1.35,.5,1),width .45s cubic-bezier(.3,1.35,.5,1),opacity .2s}
+.nav-cta{display:inline-flex;align-items:center;gap:2px;margin-left:10px;margin-right:auto;font:400 17px/1 var(--f-mega);letter-spacing:.05em;color:#fff;background:var(--accent);border:2.5px solid var(--ink);border-radius:999px;padding:10px 16px 9px;box-shadow:3px 3px 0 var(--ink);white-space:nowrap;position:relative;transition:translate .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s}
+.nav-cta span{display:inline-block;transition:rotate .2s}
+.nav-cta:hover{translate:-2px -3px;box-shadow:5px 6px 0 var(--ink)}
+.nav-cta:hover span{rotate:18deg}
+.nav-cta::after{content:'';position:absolute;inset:-3px;border-radius:999px;border:3px solid var(--accent);opacity:0;animation:cta-ping 3.2s 2s ease-out infinite;pointer-events:none}
+@keyframes cta-ping{0%{opacity:.7;transform:scale(1)}40%,100%{opacity:0;transform:scale(1.35,1.6)}}
+.site-header{transition:box-shadow .25s,background .25s}
+@media (max-width:1100px){.site-header nav a{padding:8px 9px;font-size:13px}}
+@media (max-width:700px){
+ .site-header nav{grid-column:1/-1;overflow-x:auto;scrollbar-width:none;justify-content:flex-start;gap:0;padding:0 2px}
+ .site-header nav::-webkit-scrollbar{display:none}
+ .site-header nav a{flex:none;padding:8px 11px}
+ .nav-cta{display:none}
+}
+@media (prefers-reduced-motion:reduce){.nav-ink{transition:none}.nav-cta::after{animation:none}}
+.cursor-preview img:not([src]){visibility:hidden}
+/* Storyline pictures v2: bigger, real photo polaroid, develop reveal. */
+.story-visual{max-width:min(600px,100%)}
+.story-visual img{max-height:min(52vh,470px)}
+.story-visual.frame-polaroid{padding:12px 12px 0;background:#fff;rotate:-2.5deg;max-width:min(380px,82%)}
+.story-visual.frame-polaroid img{aspect-ratio:1;object-fit:cover;object-position:50% 30%;max-height:min(48vh,360px)}
+.story-visual figcaption{font:400 20px/1 var(--f-hand);text-align:center;padding:10px 0 12px}
+.frame-polaroid .story-second{right:-48%;bottom:8%;width:72%!important;rotate:5deg;padding:0}
+.story-visual.frame-taped img{max-height:min(48vh,440px);width:100%;object-fit:cover}
+.story-visual::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(#14141455 1.6px,transparent 1.8px) 0 0/9px 9px,var(--sun);opacity:0}
+.is-pinned .story-scene.is-on .story-visual,.is-stacked .story-scene.is-seen .story-visual{animation:story-develop .8s .1s cubic-bezier(.3,1.2,.5,1) both}
+.is-pinned .story-scene.is-on .story-visual::after,.is-stacked .story-scene.is-seen .story-visual::after{animation:story-flash .8s .1s ease-out both}
+@keyframes story-develop{0%{clip-path:inset(0 0 100% 0);transform:translateY(24px) rotate(-4deg)}70%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(-40px -80% -60px -40px);transform:none}}
+@keyframes story-flash{0%{opacity:.95}100%{opacity:0}}
+.is-pinned .story-scene.is-on .story-stat b,.is-stacked .story-scene.is-seen .story-stat b{animation:act-pop .55s cubic-bezier(.3,1.6,.5,1) both}
+.is-pinned .story-scene.is-on .story-words>*{animation:story-in .45s cubic-bezier(.3,1.3,.5,1) both}
+.is-pinned .story-scene.is-on .story-words>*:nth-child(2){animation-delay:.06s}
+.is-pinned .story-scene.is-on .story-words>*:nth-child(3){animation-delay:.12s}
+.is-pinned .story-scene.is-on .story-words>*:nth-child(4){animation-delay:.18s}
+.is-pinned .story-scene.is-on .story-words>*:nth-child(5){animation-delay:.24s}
+.is-pinned .story-scene.is-on .story-words>*:nth-child(n+6){animation-delay:.3s}
+@keyframes story-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (max-width:900px){.frame-polaroid .story-second{right:-30%;width:62%!important}.story-visual.frame-polaroid{max-width:62%}}
+@media (prefers-reduced-motion:reduce){.story-visual,.story-visual::after,.story-stat b,.story-words>*{animation:none!important}}
+/* Entrance animations, 22 November: services slam in one by one, work screenshots wipe in. */
+.scroll-portfolio .offer-card.reveal{opacity:0;transform:translateY(46px) rotate(calc((var(--i) - 1) * 4deg)) scale(.9)}
+.scroll-portfolio .offer-card.reveal.is-revealed{opacity:1;transform:none;transition:opacity .4s calc(var(--i) * .12s),transform .65s calc(var(--i) * .12s) cubic-bezier(.3,1.5,.5,1)}
+.scroll-portfolio .project-story.reveal img{clip-path:inset(0 100% 0 0)}
+.scroll-portfolio .project-story.reveal.is-revealed img{clip-path:inset(0 0 0 0);transition:clip-path .9s .15s cubic-bezier(.65,0,.35,1)}
+.scroll-portfolio .index-project.reveal{opacity:0;transform:translateY(30px) rotate(-2deg)}
+.scroll-portfolio .index-project.reveal.is-revealed{opacity:1;transform:none;transition:opacity .4s,transform .6s cubic-bezier(.3,1.5,.5,1)}
+@media (prefers-reduced-motion:reduce){.scroll-portfolio .offer-card.reveal,.scroll-portfolio .index-project.reveal{opacity:1;transform:none}.scroll-portfolio .project-story.reveal img{clip-path:none}}

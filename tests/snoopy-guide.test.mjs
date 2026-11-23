@@ -24,12 +24,12 @@ test('every project gets a quick take built only from its own data',()=>{
 });
 
 test('topics count and list the right projects',()=>{
- for(const topic of ['All','Websites','Design','Research']){
+ for(const topic of ['All','Websites','Design']){
   const c=guideContent({type:'topic',id:topic}),expected=topic==='All'?projectList:projectList.filter(p=>p.tags.includes(topic));
   assert.deepEqual(c.projects.map(p=>p.id),expected.map(p=>p.id));
   assert.ok(c.line.startsWith(String(expected.length)));
  }
- assert.equal(topicProjects('All').length,8);
+ assert.equal(topicProjects('All').length,projectList.length);assert.deepEqual(projectList.map(p=>p.id),['sunset','bayu','apparel']);
 });
 
 test('the card stays on screen beside Snoopy, or becomes a bottom sheet on phones',()=>{

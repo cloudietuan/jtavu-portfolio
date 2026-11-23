@@ -12,9 +12,9 @@ export const highlights=[
 
 // What John can do for someone, each backed by real work.
 export const offers=[
- {title:'Brands and websites for small businesses',line:'I’ve helped run my family’s salon since 2018, so I build for owners who need customers to walk in.',proof:['Sunset Nails','Bayu Consulting','JTAVU Apparel']},
- {title:'Research you can actually use',line:'I like questions that end in a tool, a plan or a prototype someone can open.',proof:['OncoSync','Maryvale health center model','Hinksey Labs']},
- {title:'UX, content and outreach',line:'I design in Figma, make content for brands and student teams, and reach out to the people a project needs.',proof:['UX@Berkeley','SCRL','Paletté','AAA Media']},
+ {title:'Brand and websites',line:'A clear look and a site that makes customers want to walk in. I’ve built both for my family’s salon since 2018.',proof:['Sunset Nails','Bayu Consulting','JTAVU Apparel']},
+ {title:'Content and social',line:'Graphics, recaps and brand content that people stop scrolling for, from game days to creative tools.',proof:['@gcamensvolleyball','SCRL','Cal Baseball','AAA Media']},
+ {title:'Outreach and partnerships',line:'I reach out to the creators, brands and professionals a project needs, and I keep the conversation going.',proof:['Paletté','Golden Summit','Bayu Consulting']},
 ];
 
 // LinkedIn, grouped into sections of work.

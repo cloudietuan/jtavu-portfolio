@@ -1,4 +1,6 @@
-export const projectList = [
+// Every project John has. The site shows only the marketing work (projectList);
+// the rest stay available for activity pages that link to them.
+export const allProjects = [
   { id:'sunset', title:'Sunset Nails', category:'Websites', tags:['Websites','Design'], role:'Brand & website', url:'https://sunsetnails.shop/', image:'/assets/sunset.webp', color:'#ead9cd', description:'A new identity and website for my family’s nail salon.', detail:'I worked on the logo, website, and customer intake experience alongside the day-to-day operations of the family business in Gilbert and Mesa, Arizona.', featured:true },
   { id:'apparel', title:'JTAVU Apparel', category:'Design', tags:['Design'], role:'Apparel & visual identity', url:'https://jtavu.lovable.app/', image:'/assets/apparel.webp', color:'#e6e9e0', description:'Graphics and team identities, made to be worn.', detail:'An ongoing collection of shirt graphics, class and team identities, and mockups carried through to printed pieces.', featured:true },
   { id:'oncosync', title:'OncoSync', category:'Research', tags:['Research','Websites'], role:'Research platform · in development', url:'https://oncosync.lovable.app/', mark:'Onco\nSync', color:'#e4ecf0', description:'A web tool for pancreatic cancer vaccine research, built from my science fair work.', detail:'A browser-based project exploring gene-expression survival analysis, immune-response modeling, and virus-like-particle simulation. This is a research tool in development, with further validation still ahead.' },
@@ -22,5 +24,8 @@ const stories={
 // research, and product prototypes each get their own comic treatment.
 export const KINDS={web:{stamp:'LIVE SITE!',words:['HMM?','BAM!','TA-DA!','LIVE!']},design:{stamp:'WEAR IT!',words:['OOH!','SKETCH!','FRESH!','MORE!']},lab:{stamp:'EUREKA!',words:['WHY?','ZAP!','EUREKA!','NEXT!']},blueprint:{stamp:'PROTOTYPE!',words:['WHAT IF?','DRAFT!','BUILT!','SOON!']}};
 const kindOf={sunset:'web',apparel:'design',oncosync:'lab',maryvale:'lab',bayu:'web',volleytrack:'blueprint',science:'web',biology:'lab'};
-for(const p of projectList){Object.assign(p,stories[p.id]);p.kind=kindOf[p.id]||'web';if(!p.featured)p.image=`/assets/${p.id}-preview.jpg`;}
-export const projects=Object.fromEntries(projectList.map(p=>[p.id,p]));
+for(const p of allProjects){Object.assign(p,stories[p.id]);p.kind=kindOf[p.id]||'web';if(!p.featured)p.image=`/assets/${p.id}-preview.jpg`;}
+export const projects=Object.fromEntries(allProjects.map(p=>[p.id,p]));
+// The marketing site, 22 November: Sunset Nails, Bayu Consulting, JTAVU Apparel.
+export const MARKETING=['sunset','bayu','apparel'];
+export const projectList=MARKETING.map(id=>projects[id]);

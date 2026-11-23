@@ -32,12 +32,14 @@ function Frame({item,i,onOpen}){
 
 export function HallOfFame(){
  const [kind,setKind]=useState('All'),[open,setOpen]=useState(null);
- const shown=hall.filter(h=>kind==='All'||h.kind===kind);
+ // The main wall shows the marketing proof; activity pages still show everything.
+ const wall=hall.filter(h=>h.marketing),kinds=HALL_KINDS.filter(k=>k==='All'||wall.some(h=>h.kind===k));
+ const shown=wall.filter(h=>kind==='All'||h.kind===kind);
  return <section id="hall" className="hall-section" aria-labelledby="hall-title">
   <p className="section-kicker">HALL OF FAME</p>
   <h2 id="hall-title">The proof.<span className="pow pow-head" aria-hidden="true">WIN!</span></h2>
-  <p className="hall-lede">Posters I presented, awards I earned and certificates I didn’t throw away. Tap one to see it up close.</p>
-  <div className="hall-filters" role="group" aria-label="Show">{HALL_KINDS.map(k=><button key={k} type="button" aria-pressed={kind===k} onClick={()=>setKind(k)}>{k}<span>{k==='All'?hall.length:hall.filter(h=>h.kind===k).length}</span></button>)}</div>
+  <p className="hall-lede">Awards and certificates from the business side of my work. Tap one to see it up close.</p>
+  <div className="hall-filters" role="group" aria-label="Show">{kinds.length>2&&kinds.map(k=><button key={k} type="button" aria-pressed={kind===k} onClick={()=>setKind(k)}>{k}<span>{k==='All'?wall.length:wall.filter(h=>h.kind===k).length}</span></button>)}</div>
   <ul className="hall-wall">{shown.map((h,i)=><Frame key={h.id} item={h} i={i} onOpen={setOpen}/>)}</ul>
   <HallViewer item={open} onClose={()=>setOpen(null)}/>
  </section>;
