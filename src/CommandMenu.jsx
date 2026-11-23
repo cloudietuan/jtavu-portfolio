@@ -30,7 +30,7 @@ export function buildCommands(projects=projectList){
    aim(0);
   }})),
   ...activityList.map(a=>({id:`activity-${a.slug}`,group:'Activities',title:a.name,hint:a.role,keys:`${a.name} ${a.role} ${a.group} activity story`,run:()=>{location.hash=activityHref(a.slug);}})),
-  {id:'go-highlights',group:'Go to',title:'Highlights',hint:'the short version',keys:'best awards isef',run:jump('highlights')},
+  {id:'go-story',group:'Go to',title:'The story',hint:'how I help a business get found',keys:'marketing story brand content outreach research highlights',run:jump('story')},
   {id:'go-work',group:'Go to',title:'Work',hint:'things I’ve built',keys:'projects portfolio',run:jump('work')},
   {id:'go-offer',group:'Go to',title:'What I can do for you',hint:'services',keys:'hire offer help build',run:jump('offer')},
   {id:'go-experience',group:'Go to',title:'Experience',hint:'where I’ve been',keys:'linkedin jobs roles resume',run:jump('experience')},

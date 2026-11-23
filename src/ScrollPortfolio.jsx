@@ -1,8 +1,9 @@
 import {useEffect,useState} from 'react';
-import {highlights,offers,experience} from './experience';
+import {offers,experience} from './experience';
 import {projectList,KINDS} from './projects';
 import {activityHref,slugOf} from './activities.js';
 import {HallOfFame} from './HallOfFame.jsx';
+import {StoryLine} from './StoryLine.jsx';
 import {MessageFromJohn,ExperienceDoors} from './StorySections.jsx';
 export function ScrollPortfolio({filter,setFilter,openProject,brief}){
  const visible=projectList.filter(p=>filter==='All'||p.tags.includes(filter));
@@ -23,7 +24,7 @@ export function ScrollPortfolio({filter,setFilter,openProject,brief}){
  },[filter]);
  // Header reading progress and the current section in the navigation.
  useEffect(()=>{
-  const links=[...document.querySelectorAll('.site-header nav a')],ids=['top','highlights','work','offer','experience','about','contact'];
+  const links=[...document.querySelectorAll('.site-header nav a')],ids=['top','story','work','offer','experience','about','contact'];
   let queued=false;
   const update=()=>{
    queued=false;
@@ -41,7 +42,7 @@ export function ScrollPortfolio({filter,setFilter,openProject,brief}){
 
  const [phone]=useState(()=>typeof matchMedia!=='undefined'&&matchMedia('(max-width: 700px)').matches);
  return <div className="scroll-portfolio">
- <section id="highlights" className="highlights-section" aria-labelledby="highlights-title"><p className="section-kicker">HIGHLIGHTS</p><h2 id="highlights-title">The short version.<span className="pow pow-head" aria-hidden="true">WOW!</span></h2><div className="highlight-grid swipe-row">{highlights.map((h,i)=><article key={h.title} className={`highlight-card tone-${h.tone}`} style={{'--i':i}}><h3>{h.title}</h3><p>{h.line}</p>{h.link&&<a className="text-action" href={h.link.href} {...(h.link.href.startsWith('http')?{target:'_blank',rel:'noreferrer'}:{})}>{h.link.label}</a>}</article>)}</div></section>
+ <StoryLine/>
  <div className="hype-band is-sun" aria-hidden="true"><div className="hype-track">{Array.from({length:4},(_,k)=><span key={k}>BRANDS ✦ WEBSITES ✦ RESEARCH ✦ CONTENT ✦ </span>)}</div></div>
  <section id="work" className="work-intro"><p className="section-kicker">WORK</p><div className="work-heading"><h2>Things I’ve built.<span className="pow pow-head" aria-hidden="true">POW!</span></h2><p>Websites, brands and research.<br/>Tap one and Snoopy gives you the short version.</p></div><div className="work-filter-row"><div className="work-filters" aria-label="Filter selected work">{['All','Websites','Design','Research'].map(f=><button key={f} data-guide-trigger aria-pressed={filter===f} onClick={e=>{setFilter(f);brief('topic',f,e);}}>{f}</button>)}</div></div><ol className="project-directory" aria-label="Project directory. Choose one for Snoopy’s quick take.">{visible.map(p=><li key={p.id}><button data-guide-trigger data-preview={p.image} onClick={e=>brief('project',p.id,e)}><b>{p.title}</b><span>{p.tags.join(' / ')}</span><em>{p.status}</em></button></li>)}</ol></section>
  <div className="featured-stories">{featured.map((p,i)=><section key={p.id} data-project-id={p.id} data-snoopy-actions="inspect climb" id={`project-${p.id}`} className={`project-story kind-${p.kind} ${p.id==='apparel'?'apparel-story':''}`} aria-labelledby={`title-${p.id}`}><div className="story-heading"><p className="section-kicker">{p.tags.join(' / ').toUpperCase()}</p><h2 id={`title-${p.id}`}>{p.title}</h2><p className="story-role">{p.role} <span className="project-status">{p.status}</span></p></div><button className="story-image" data-guide-trigger onClick={e=>brief('project',p.id,e)} aria-label={`Snoopy’s quick take on ${p.title}`}><img src={p.image} alt={`${p.title} website and design preview`} loading="lazy"/></button><div className="story-copy"><p className="story-statement">{p.description}</p><div><p>{p.detail}</p><button className="text-action" onClick={()=>openProject(p.id)}>Full story</button>{p.url&&<a className="text-action" href={p.url} target="_blank" rel="noreferrer">Visit</a>}</div></div></section>)}</div>

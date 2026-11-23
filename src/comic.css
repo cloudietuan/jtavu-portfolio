@@ -680,3 +680,94 @@ body{font-weight:400}
  .hero-v2 .hero-copy .hero-sub{margin-top:8px}
  .hero-v2 .hero-cta{margin-top:10px}
 }
+
+/* ===== Marketing storyline, 22 November: replaces Highlights ===== */
+.story-section{position:relative;padding:72px 0 40px}
+.story-section.is-pinned{height:calc(var(--scenes) * 92vh + 30vh);padding:0}
+.story-stage{position:relative}
+.is-pinned .story-stage{position:sticky;top:64px;height:calc(100vh - 64px);display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:clamp(20px,3vw,48px);align-items:center;padding:24px clamp(20px,4vw,64px);overflow:hidden}
+.story-head h2{font:400 clamp(36px,4.6vw,72px)/1 var(--f-mega);letter-spacing:.02em;text-transform:uppercase;margin:0 0 22px;font-style:normal}
+.story-rail{position:relative}
+.story-rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.story-rail button{appearance:none;width:100%;text-align:left;font:700 16px/1.1 var(--f-body);color:var(--ink);background:#fff;border:2.5px solid var(--ink);padding:9px 12px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;transition:translate .18s cubic-bezier(.3,1.5,.5,1),background .2s,color .2s}
+.story-rail button:hover{translate:-2px -2px}
+.story-rail button.is-past{background:var(--sun)}
+.story-rail button.is-on{background:var(--accent);color:#fff;translate:8px 0;box-shadow:5px 5px 0 var(--ink)}
+.story-rail button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.story-progress{position:absolute;left:-14px;top:0;bottom:0;width:5px;background:#14141422}
+.story-progress i{position:absolute;inset:0 0 auto 0;height:calc(var(--story-p,0) * 100%);background:var(--accent)}
+.story-scenes{position:relative}
+.is-pinned .story-scenes{height:min(72vh,640px)}
+.story-scene{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(18px,3vw,40px);align-items:center;border:var(--line);box-shadow:9px 10px 0 var(--ink);padding:clamp(20px,3vw,40px);background:#fff;background-image:radial-gradient(#14141418 1.4px,transparent 1.5px);background-size:13px 13px}
+.story-scene.tone-sky{background-color:#cfe9ff}.story-scene.tone-sun{background-color:#ffe58a}.story-scene.tone-red{background-color:#ffb4a8}.story-scene.tone-paper{background-color:#fff9ec}
+.is-pinned .story-scene{position:absolute;inset:0;transition:opacity .45s,transform .6s cubic-bezier(.3,1.25,.5,1)}
+.is-pinned .story-scene.is-next{opacity:0;transform:translateX(70px) rotate(3deg) scale(.94);pointer-events:none}
+.is-pinned .story-scene.is-past{opacity:0;transform:translateX(-50px) rotate(-3deg) scale(.96);pointer-events:none}
+.is-pinned .story-scene.is-on{opacity:1;transform:none}
+.is-stacked .story-scene{margin-top:28px}
+.is-stacked .story-scene:nth-child(2n){rotate:.6deg}.is-stacked .story-scene:nth-child(2n+1){rotate:-.6deg}
+.story-words{background:#fff;border:var(--line);padding:clamp(18px,2.4vw,30px);box-shadow:5px 6px 0 var(--ink)}
+.story-step{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.story-step span{font:400 16px/1 var(--f-mega);letter-spacing:.06em;background:var(--ink);color:#fff;padding:6px 10px;text-transform:uppercase}
+.story-step em{font:400 16px/1.1 var(--f-hand);font-style:normal;background:var(--sun);border:2px solid var(--ink);padding:4px 8px;rotate:-1.5deg}
+.story-words h3{font:400 clamp(26px,3vw,44px)/1.02 var(--f-title);margin:0 0 14px}
+.story-text{margin:0 0 10px;font-size:clamp(16px,1.25vw,19px);font-weight:700;line-height:1.5}
+.story-chips{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.story-chips li{font:700 14px var(--f-body);background:var(--sky);border:2px solid var(--ink);padding:5px 10px;box-shadow:2px 2px 0 var(--ink)}
+.story-chips li:nth-child(2n){background:var(--sun)}
+.story-link{display:inline-block;margin-top:14px}
+.story-art{position:relative;display:grid;place-items:center;min-height:0}
+.story-sfx{position:absolute;right:-6px;top:-18px;z-index:2;rotate:10deg}
+.is-pinned .story-scene.is-on .story-sfx{animation:act-pop .5s .25s cubic-bezier(.3,1.6,.5,1) both}
+.story-visual{position:relative;margin:0;width:100%;max-width:560px;background:#fff;border:var(--line);box-shadow:7px 8px 0 var(--ink);rotate:1.5deg}
+.story-visual img{display:block;width:100%;max-height:min(46vh,420px);object-fit:cover;object-position:top}
+.story-visual.frame-taped{padding:10px}
+.story-visual.frame-taped img{object-fit:contain;background:#fff}
+.story-visual.frame-taped::before{content:'';position:absolute;left:50%;top:-14px;width:90px;height:26px;translate:-50% 0;rotate:-4deg;background:#ffffffcc;border:2px dashed #14141455;z-index:1}
+.story-browser{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:var(--line);background:#fff9ec}
+.story-browser i{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);background:var(--accent)}
+.story-browser i:nth-child(2){background:var(--sun)}.story-browser i:nth-child(3){background:var(--sky)}
+.story-browser em{margin-left:8px;font:400 14px var(--f-hand);font-style:normal;background:#fff;border:2px solid var(--ink);padding:2px 10px;border-radius:999px}
+.story-second{position:absolute;right:-26px;bottom:-30px;width:38%!important;max-height:none!important;border:var(--line);background:#fff;padding:6px;rotate:-6deg;box-shadow:5px 5px 0 var(--ink)}
+.story-stat{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;max-width:460px}
+.story-stat b{font:400 clamp(96px,13vw,200px)/.85 var(--f-mega);color:var(--accent);-webkit-text-stroke:4px var(--ink);text-shadow:8px 8px 0 var(--ink);letter-spacing:.02em}
+.story-stat span{font:400 clamp(18px,1.6vw,24px)/1.2 var(--f-hand);background:#fff;border:2.5px solid var(--ink);padding:6px 12px;rotate:-2deg}
+.story-stat img{width:min(260px,70%);border:var(--line);background:#fff;padding:6px;rotate:3deg;box-shadow:5px 5px 0 var(--ink)}
+.story-cta-panel{display:flex;flex-direction:column;align-items:center;gap:16px}
+.story-cta-burst{display:grid;place-items:center;width:clamp(170px,18vw,250px);aspect-ratio:1;background:var(--sun);color:var(--ink);font:400 clamp(30px,3.4vw,48px)/1 var(--f-mega);clip-path:polygon(50% 0,61% 22%,85% 8%,78% 33%,100% 40%,80% 55%,96% 78%,70% 74%,62% 100%,48% 80%,30% 98%,28% 74%,3% 82%,18% 58%,0 40%,22% 32%,12% 8%,38% 22%);filter:drop-shadow(5px 5px 0 var(--ink));rotate:-8deg}
+@media (max-width:900px){
+ .story-head h2{font-size:clamp(34px,9vw,54px)}
+ .is-stacked .story-rail ol{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding-bottom:6px;scrollbar-width:none}
+ .is-stacked .story-rail button{white-space:nowrap;width:auto}
+ .story-scene{grid-template-columns:1fr;box-shadow:6px 7px 0 var(--ink);padding:16px}
+ .story-art{order:-1}
+ .story-second{right:-10px;bottom:-18px}
+ .story-stat b{font-size:96px}
+ .story-sfx{right:4px;top:-12px}
+}
+@media (prefers-reduced-motion:reduce){.story-sfx{animation:none!important}}
+/* Old .story-* rules from the first site use other names; keep the head a plain column. */
+.story-head{display:block;position:relative;z-index:1}
+.story-head .section-kicker{position:static;margin:0 0 10px;rotate:-2deg}
+/* Storyline fit: size to the screen height so every scene and the full step list fit. */
+.is-pinned .story-scenes{height:min(calc(100vh - 64px - 48px),700px)}
+.is-pinned .story-head h2{font-size:clamp(30px,min(4vw,6.4vh),66px);margin-bottom:16px}
+.is-pinned .story-rail button{font-size:clamp(13px,1.8vh,16px);padding:clamp(5px,.9vh,9px) 12px}
+.is-pinned .story-rail ol{gap:clamp(5px,.8vh,8px)}
+.is-pinned .story-scene{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);padding:clamp(16px,2.6vh,36px) clamp(18px,2.4vw,36px)}
+.is-pinned .story-words{padding:clamp(14px,2.2vh,28px) clamp(16px,1.8vw,28px);max-height:100%;overflow:hidden}
+.is-pinned .story-words h3{font-size:clamp(22px,min(2.7vw,4.6vh),44px)}
+.is-pinned .story-text{font-size:clamp(14px,min(1.2vw,2.2vh),19px);margin-bottom:8px}
+.is-pinned .story-chips{margin-top:10px}
+.is-pinned .story-chips li{font-size:clamp(12px,1.7vh,14px)}
+.is-pinned .story-visual img{max-height:min(44vh,400px)}
+.is-pinned .story-stat b{font-size:clamp(80px,min(11vw,20vh),190px)}
+/* Storyline layout v2: title across the top, step list left, scene right. */
+.is-pinned .story-stage{grid-template-columns:minmax(150px,200px) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);align-items:stretch;row-gap:clamp(10px,2vh,22px);padding-top:clamp(14px,2.4vh,28px);padding-bottom:clamp(14px,2.4vh,28px)}
+.is-pinned .story-head{grid-column:1/-1}
+.is-pinned .story-head h2{font-size:clamp(28px,min(3.4vw,6vh),58px);margin:0}
+.is-pinned .story-head .section-kicker{margin-bottom:6px}
+.is-pinned .story-rail{align-self:center}
+.is-pinned .story-scenes{height:auto;min-height:0}
+.story-rail button.is-on{translate:6px 0}
+@media (max-width:1100px){.is-pinned .story-chips{display:none}}
